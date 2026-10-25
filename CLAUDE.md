@@ -23,7 +23,7 @@ python src/sunset/sunset_score.py             # original scorer, worked examples
   conditions. Do not "simplify" it into a sum.
 - **Cloud is sampled upwind** along the solar azimuth (50–250 km), not overhead.
 - **Constants are uncalibrated.** They are physically reasoned, not fitted.
-  Do not tune them until there is enough human rating data (see NEXT-STEPS E).
+  Do not tune them until there is enough human rating data (see NEXT-STEPS F).
 - **`src/sunset/sunset_score.py` and `src/sunset/sunset_score.js` must stay in sync by hand.**
   There is no automated parity check yet. Change both or neither.
 - **No API keys, by design.** Open-Meteo and elevation data are keyless; keep

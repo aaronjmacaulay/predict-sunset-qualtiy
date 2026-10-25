@@ -14,27 +14,28 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 Suggested order of work:
 
 A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests) → B2b →
-D → E1–E4 (in parallel with the above, by the human raters) → F1–F3 →
-E5–E7 → F4–F5.
+D1 + D5 (right after C1) → rest of D as needed → E → F1–F4 (in parallel with
+the above, by the human raters) → G1–G3 → F5–F7 → G4–G5.
 
 Sections:
 
 - **A. Repo foundations** - version control, CLAUDE.md, scripts.
 - **B. Restructure by role** - folder layout, structured ratings data.
 - **C. Python migration, then tests** - port to Python with uv, pytest.
-- **D. Housekeeping fixes** - small inconsistencies in docs and data.
-- **E. Research / product** - rating study, calibration, Tier 3 work, and E2
+- **D. Design improvements** - changes to the predictor's structure and
+  behaviour, suggested by Claude after reviewing the JS code.
+- **E. Housekeeping fixes** - small inconsistencies in docs and data.
+- **F. Research / product** - rating study, calibration, Tier 3 work, and F2
   personalisation.
-- **F. Deployment** - product shape, hosting, CI, alerting, UI (undefined).
+- **G. Deployment** - product shape, hosting, CI, alerting, UI (undefined).
 
 ---
 
 ## A. Repo foundations (do first — everything else gets safer)
 
-- [~] **A1. Put the work under version control.** Committed locally (not
-  pushed). Decision: commit `photos/used` + `photos/stock`; ignore
-  `photos/unused` and `analysis/sat_test`. Remaining: push to `origin` (the
-  `aaronjmacaulay` GitHub repo) once Sandy approves.
+- [x] **A1. Put the work under version control.** Committed and pushed to
+  `origin` (the `aaronjmacaulay` GitHub repo). Decision: commit rated + stock
+  photos; ignore unrated photos and satellite scratch imagery.
   Only the template `.gitignore` and README are committed; all source, docs
   and data are untracked. Ignore or LFS `analysis/sat_test/` (~46 MB) and
   `photos/unused/`; extend `.gitignore` for Node (`node_modules/`) and macOS
@@ -76,7 +77,7 @@ layout once instead of being written and then moved.
   research/               research.md, risk-poc.md, the .docx (background only)
   docs/superpowers/       specs/ and plans/ - STAY where superpowers puts them
   design/                 UI mockups (Sunset Scout) for the future app
-  app/                    reserved name; created after F1/F2, not before
+  app/                    reserved name; created after G1/G2, not before
   ```
   Notes:
   - No `build/` directory: Python needs no build step. A web app's tooling
@@ -124,6 +125,11 @@ only one scorer.
   Carry over the existing regression test (9 scenario scores) as the first
   pytest. Python 3.14 is installed; numpy and pytest are not (uv will manage
   them).
+  **Port faithfully:** same behaviour as the JS (including worst-case upwind
+  cloud) so the Python can be checked against JS output; modelling changes
+  go in D. Two decisions to make during the port: keep Python's rounding
+  (`round(2.5)` = 2; JS gives 3), and make missing API values fail loudly
+  rather than silently becoming NaN (see D4).
   *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
 
 - [ ] **C2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
@@ -132,31 +138,68 @@ only one scorer.
 
 - ~~C3. Python/JS parity test~~ **Dropped**: unnecessary after C1.
 
-## D. Housekeeping fixes
+## D. Design improvements (suggested by Claude)
 
-- [ ] Add `analysis/README.md` (referenced by `report.md` and
+Observations from Claude's review of the JS code (Oct 2026), comparing it with
+the Python scorer. None is needed before the Python migration: C1 ports the
+current behaviour faithfully so it can be verified, and these follow it.
+D1 and D5 don't change any scores (the regression test guards that), so they
+are the best candidates to do straight after C1.
+
+- [ ] **D1. Return the features, not just the score.** `score()` computes the
+  four terms and their sub-factors, then returns one integer; the terms only
+  reach the screen through trace printing. Return them as a structured
+  result. Prerequisite for personalisation (F2.2).
+- [ ] **D2. Revisit worst-case upwind cloud.** Low cloud is the *max* of 3
+  samples (50/150/250 km), so one cloudy grid cell sets the whole light-path
+  term (the Tier 1 spec's known weakness). Averaging or distance-weighting is
+  a modelling choice; decide it deliberately, ideally against ratings data.
+- [ ] **D3. Interpolate to sunset time.** Weather is taken at the nearest
+  hourly bucket (a 7:29 pm sunset uses 7:00 data). Interpolating between the
+  two surrounding hours is more faithful.
+- [ ] **D4. Handle missing API data.** No checks for `null` in Open-Meteo
+  responses; a missing AOD or visibility value would produce NaN rather than
+  an error (plausible where air-quality coverage is patchy; not yet tested).
+  C1 should at least fail loudly; D4 decides fallbacks (e.g. default AOD).
+- [ ] **D5. Separate computing from printing.** Trace output lives inside
+  `score()` and `pinpoint` prints as it goes. Return a result object and
+  format it separately, so an app or alert job can use the same code.
+- [ ] **D6. Batch the upwind weather requests.** The 3 upwind points are 3
+  separate calls; Open-Meteo accepts multiple coordinates per request
+  (`terrain` already does this for elevation; the forecast endpoint very
+  likely does too, to verify).
+- [ ] **D7. Share geometry helpers.** `destinationPoint()` is duplicated in
+  `pinpoint` and `terrain` on purpose (to keep `terrain` standalone). In the
+  Python package, put it in a shared `geo` module.
+
+## E. Housekeeping fixes
+
+- [ ] Add `study/analysis/README.md` (referenced by `report.md` and
   `label_data.js` but missing), or remove the references.
 - [ ] `report.md`: change "33 remaining unrated photos" to 34.
 - [ ] `report.md`: document the 4 ridge passes (two `rater_id` passes were
   added to `label_analysis.js` after the report was written).
-- [ ] Record where `photos/used/IMG_7206.jpg` came from (no `.url` shortcut).
-- [ ] Keep `photos/stock/ATTRIBUTION.md` with the images (CC BY / BY-SA).
+- [ ] Record where `study/photos/used/IMG_7206.jpg` came from (no `.url`
+  shortcut).
+- [ ] Keep `study/photos/stock/ATTRIBUTION.md` with the images (CC BY / BY-SA).
+- [ ] Decide whether to delete `study/scratch/rq401.json` (leftover Wikimedia
+  search response).
 
-## E. Research / product (from the README)
+## F. Research / product (from the README)
 
-1. [ ] **Rate the 16 stock photos** (`user-input/stock-*.md`).
+1. [ ] **Rate the 16 stock photos** (`study/ratings/stock-*.md`).
 2. [ ] **Rate more of the 34 unused camera photos** (n=16 reviews is only
    directional).
-3. [ ] **Run the rating-consistency study** (`risk-poc.md` POC 1).
+3. [ ] **Run the rating-consistency study** (`research/risk-poc.md` POC 1).
 4. [ ] **Calibrate** scoring constants against real ratings — only after 1–3.
 5. [ ] **METAR / surface-observation sub-piece of Tier 3** (structured data,
    no image interpretation).
 6. [ ] **Automate Tier 3 satellite workflow** (phase 2); classifier is
    deliberately deferred.
-7. [ ] **Notifications / alerting** — blocked on F (deployment).
+7. [ ] **Notifications / alerting** — blocked on G (deployment).
 8. [ ] **Tests for `pinpoint`/`terrain`** — covered by C2.
 
-## E2. Personalisation (the question the rating study exists to answer)
+## F2. Personalisation (the question the rating study exists to answer)
 
 The study asks: do people share one idea of a "good sunset", or do they
 differ enough that each user needs a preference profile (stated or inferred)?
@@ -169,30 +212,28 @@ suggestive but not proven. The answer changes the product's output shape:
   reflection, colour, water reflection, sun timing, ...) and a per-user
   profile turns them into a personal score.
 
-- [ ] **E2.1.** Run POC 1 with more raters (risk-poc.md targets 20–30; the
+- [ ] **F2.1.** Run POC 1 with more raters (risk-poc.md targets 20–30; the
   Google Form route is enough). Decision rule is already written there
   (mean pairwise correlation ≳ 0.6 and no clusters ⇒ single score).
-- [ ] **E2.2.** Make `sunset_score` able to emit the decomposed features
+- [ ] **F2.2.** Make `sunset_score` able to emit the decomposed features
   alongside the single score, so either outcome is supported without a
-  rewrite.
-- [ ] **E2.3.** If taste differs, choose how profiles are obtained:
+  rewrite (implemented by D1).
+- [ ] **F2.3.** If taste differs, choose how profiles are obtained:
   (a) user picks/weights archetypes, (b) user rates ~10 calibration photos
   on first use, (c) inferred from feedback ("was tonight good?").
   Recommendation: (b), since the rating tooling already exists.
-- [ ] **E2.4.** Add the "photo-specific" ceiling to the product framing: a
+- [ ] **F2.4.** Add the "photo-specific" ceiling to the product framing: a
   forecast can only explain the sky/geometry part of a rating (LOO R² 0.19 vs
   0.55 with photo labels in the first pass). Personalised *spot* knowledge
   (foreground, obstructions) may need to be a per-user/per-spot input
   rather than something forecast.
 
-## F. Deployment (undefined — needs a decision before E7)
+## G. Deployment (undefined — needs a decision before F7)
 
-Nothing is deployed and nothing is specified. See the review notes in the
-conversation that produced this file; summary:
+Nothing is deployed and nothing is specified. Summary:
 
-- **Today:** a local Node CLI (`node src/pinpoint.js <lat> <lon>`). No server,
-  no hosting config, no build step, no CI (`.github/` absent, no
-  `package.json`, no Dockerfile).
+- **Today:** a local CLI (`npm run score -- <lat> <lon>`). No server, no
+  hosting config, no build step, no CI (`.github/` absent, no Dockerfile).
 - **UI:** `design/` holds two Claude-Design mockups ("Sunset Scout": a
   "Tonight" view with a per-spot score). They are static and not wired to any
   code. Note: the mockup is a published-artifact design canvas, not a
@@ -204,15 +245,16 @@ conversation that produced this file; summary:
 
 Decisions needed:
 
-- [ ] **F1. Decide the product shape.** Options: (a) personal CLI + scheduled
+- [ ] **G1. Decide the product shape.** Options: (a) personal CLI + scheduled
   alert to self; (b) small web app showing tonight's score for saved spots;
   (c) mobile/PWA. Recommendation: start with (a), then (b).
-- [ ] **F2. Choose hosting.** The code is pure functions plus `fetch` to free,
-  keyless APIs (Open-Meteo, elevation), so a static site plus a serverless
-  function or a scheduled GitHub Action fits. Pick one.
-- [ ] **F3. Define the build/CI pipeline.** Minimum: GitHub Action running
-  `npm test` on push. Then a deploy job for whatever F2 picks.
-- [ ] **F4. Alerting path.** Scheduled job → compute score for saved spots
+- [ ] **G2. Choose hosting.** The code is pure functions plus HTTP calls to
+  free, keyless APIs (Open-Meteo, elevation), so a static site plus a
+  serverless function or a scheduled GitHub Action fits. Pick one.
+- [ ] **G3. Define the build/CI pipeline.** Minimum: GitHub Action running
+  the tests (`uv run pytest` after C1) on push. Then a deploy job for
+  whatever G2 picks.
+- [ ] **G4. Alerting path.** Scheduled job → compute score for saved spots
   ~2–3 h before sunset → push/email if above threshold.
-- [ ] **F5. Wire the UI** (`design/`) to `pinpoint.js` output, or rebuild the
+- [ ] **G5. Wire the UI** (`design/`) to the predictor's output, or rebuild the
   mockup as real front-end code.
