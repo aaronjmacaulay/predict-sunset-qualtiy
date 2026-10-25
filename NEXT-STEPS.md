@@ -34,28 +34,29 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
   Still zero dependencies.
   *Done when:* all three scripts run from the repo root.
 
-## B. Tests (the safety net for AI edits)
+## B. Python migration, then tests
 
-- [ ] **B1. Tests for `pinpoint.js` and `terrain.js`** using recorded API
-  responses in `fixtures/` (currently empty).
-  *Done when:* `npm test` covers both modules offline.
+Order decided: migrate to Python first (B1), then write tests in pytest (B2).
+The old parity test is dropped: once the JS is gone there is only one scorer.
 
-- [ ] **B2. Python/JS parity test** (only useful if the JS lives on; skipped if B3 happens first). Run both scorers on the 9 scenarios and
-  assert identical output.
-  *Done when:* changing a constant in one file but not the other fails CI.
-
-- [ ] **B3. Migrate back to Python (DECIDED, scheduled for later).**
+- [ ] **B1. Migrate back to Python.**
   The JS port only existed because the original Windows machine had no
   working Python (Tier 1 spec §2); Python is the team's stronger language and
   suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
-  `terrain.js` and `analysis/*.js` to Python, make `src/sunset_score.py`
-  canonical, then delete the JS. Update CLAUDE.md, README, `package.json` →
-  `pyproject.toml` and the specs that say "JS".
+  `terrain.js`, `analysis/label_analysis.js` and `analysis/label_data.js` to
+  Python, make `src/sunset_score.py` canonical (it currently says "frozen
+  reference copy"; update that docstring and carry over any changes made in
+  the JS), then delete the JS. Replace `package.json` with `pyproject.toml`;
+  update CLAUDE.md, README and the specs that say "JS".
+  Carry over the existing regression test (9 scenario scores) as the first
+  pytest. Python 3.14 is installed; numpy and pytest are not.
   *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
-  **Impact on other items:** write new tests (B1) in Python/pytest *after* the
-  migration, not against the JS; B2 (parity test) becomes unnecessary once
-  the JS is gone. Keep the existing JS test only until then. Front-end
-  hosting (F) is no longer tied to JS, so F1 is free to choose.
+
+- [ ] **B2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
+  responses in `fixtures/` (currently empty).
+  *Done when:* `pytest` covers both modules offline.
+
+- ~~B3. Python/JS parity test~~ **Dropped**: unnecessary after B1.
 
 ## C. Restructure by role
 
@@ -99,7 +100,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 6. [ ] **Automate Tier 3 satellite workflow** (phase 2); classifier is
    deliberately deferred.
 7. [ ] **Notifications / alerting** — blocked on F (deployment).
-8. [ ] **Tests for `pinpoint.js`/`terrain.js`** — covered by B1.
+8. [ ] **Tests for `pinpoint`/`terrain`** — covered by B2.
 
 ## E2. Personalisation (the question the rating study exists to answer)
 
@@ -164,5 +165,5 @@ Decisions needed:
 
 ## Suggested order
 
-A1 → A2 → A3 → B1/B2 → C1 → C2 → D → E1–E4 (in parallel with the above, by
+A1 → A2 → A3 → B1 (migrate) → B2 (tests) → C1 → C2 → D → E1–E4 (in parallel with the above, by
 the human raters) → F1–F3 → E5–E7 → F4–F5.
