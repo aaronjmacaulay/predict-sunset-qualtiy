@@ -40,12 +40,22 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
   responses in `fixtures/` (currently empty).
   *Done when:* `npm test` covers both modules offline.
 
-- [ ] **B2. Python/JS parity test.** Run both scorers on the 9 scenarios and
+- [ ] **B2. Python/JS parity test** (only useful if the JS lives on; skipped if B3 happens first). Run both scorers on the 9 scenarios and
   assert identical output.
   *Done when:* changing a constant in one file but not the other fails CI.
 
-- [ ] **B3. Remove the duplication (optional, after B2).** Make JS canonical
-  and keep the Python as reference, or share constants via one JSON file.
+- [ ] **B3. Migrate back to Python (DECIDED, scheduled for later).**
+  The JS port only existed because the original Windows machine had no
+  working Python (Tier 1 spec §2); Python is the team's stronger language and
+  suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
+  `terrain.js` and `analysis/*.js` to Python, make `src/sunset_score.py`
+  canonical, then delete the JS. Update CLAUDE.md, README, `package.json` →
+  `pyproject.toml` and the specs that say "JS".
+  *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
+  **Impact on other items:** write new tests (B1) in Python/pytest *after* the
+  migration, not against the JS; B2 (parity test) becomes unnecessary once
+  the JS is gone. Keep the existing JS test only until then. Front-end
+  hosting (F) is no longer tied to JS, so F1 is free to choose.
 
 ## C. Restructure by role
 
