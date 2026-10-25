@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
+
+# Scratch satellite imagery pulled while validating Tier 3 (regenerable, ~46 MB)
+analysis/sat_test/
