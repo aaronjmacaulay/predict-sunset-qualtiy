@@ -46,10 +46,15 @@ The old parity test is dropped: once the JS is gone there is only one scorer.
   `terrain.js`, `analysis/label_analysis.js` and `analysis/label_data.js` to
   Python, make `src/sunset_score.py` canonical (it currently says "frozen
   reference copy"; update that docstring and carry over any changes made in
-  the JS), then delete the JS. Replace `package.json` with `pyproject.toml`;
-  update CLAUDE.md, README and the specs that say "JS".
+  the JS), then delete the JS.
+  **Tooling: uv.** Replace `package.json` with `pyproject.toml` + committed
+  `uv.lock` (`.venv/` stays ignored). Commands become `uv run ...`
+  (e.g. `uv run pytest`). Keep the core scorer and live tool stdlib-only
+  (`urllib`/`requests` for API calls); numpy (or scikit-learn) only for the
+  analysis code, pytest in a dev dependency group. uv 0.12.1 is already
+  installed. Update CLAUDE.md, README and the specs that say "JS".
   Carry over the existing regression test (9 scenario scores) as the first
-  pytest. Python 3.14 is installed; numpy and pytest are not.
+  pytest. Python 3.14 is installed; numpy and pytest are not (uv will manage them).
   *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
 
 - [ ] **B2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
