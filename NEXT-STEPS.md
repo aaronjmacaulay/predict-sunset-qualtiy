@@ -39,19 +39,33 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 Done before the Python migration (C) so the new code lands in its final
 layout once instead of being written and then moved.
 
-- [ ] **B1. Reorganise folders.** Proposed layout:
+- [ ] **B1. Reorganise folders.** Two code worlds (the predictor and the
+  rating study) plus, later, the user-facing app. Proposed layout:
   ```
-  src/sunset/ Python package (scoring, live tool, terrain) - target layout
-              for C1; until C1 the existing .py/.js files are moved as-is
-  research/   research.md, risk-poc.md, specs/, the .docx
-  data/       photos/, ratings, stock manifest
-  analysis/   scripts + report only
-  design/     mockups
+  src/sunset/             predictor library (scoring, live data, terrain);
+                          until C1 the existing .py/.js files are moved as-is
+  tests/ (+ fixtures/)    tests and recorded API responses (fixtures/ is
+                          currently empty at the root; move it here)
+  study/                  the whole rating study in one place: photos/
+                          (used, stock), ratings, analysis scripts, report,
+                          stock manifest, sat_test (or scratch/ignored)
+  research/               research.md, risk-poc.md, the .docx (background only)
+  docs/superpowers/       specs/ and plans/ - STAY where superpowers puts them
+  design/                 UI mockups (Sunset Scout) for the future app
+  app/                    reserved name; created after F1/F2, not before
   ```
-  Settle the Python package layout here (`src/sunset/` with modules and
-  entry points) so nothing moves twice. Move `sat_test` to `data/` or
-  scratch; archive `photosunset/` as provenance. Update README layout
-  section, CLAUDE.md and any paths in code.
+  Notes:
+  - No `build/` directory: Python needs no build step. A web app's tooling
+    will make its own output folder later (gitignored); CI lives in
+    `.github/`.
+  - `study/` replaces the old `data/` + `analysis/` + `user-input/` split.
+  - Personalisation: the function that turns features + a user profile into
+    a score belongs in `src/sunset/`; profile storage and display belong in
+    `app/`.
+  - Settle the Python package layout here (`src/sunset/`, modules, entry
+    points) so nothing moves twice. Archive `photosunset/` as provenance
+    (e.g. under `study/`). Update README layout section, CLAUDE.md and any
+    paths in code.
   *Done when:* all scripts still run and the README layout matches reality.
 
 - [ ] **B2. Structured ratings data**, in two parts:
