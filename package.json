@@ -5,9 +5,9 @@
   "description": "Hyperlocal sunset quality forecasting and rating study",
   "scripts": {
     "test": "node --test",
-    "analyze": "node analysis/label_analysis.js",
-    "score": "node src/pinpoint.js",
-    "score:py": "python3 src/sunset_score.py"
+    "analyze": "node study/analysis/label_analysis.js",
+    "score": "node src/sunset/pinpoint.js",
+    "score:py": "python3 src/sunset/sunset_score.py"
   },
   "engines": {
     "node": ">=20"

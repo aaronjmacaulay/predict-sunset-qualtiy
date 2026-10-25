@@ -7,7 +7,7 @@
 //         all labels, and again restricted to sky_weather + geometry labels only
 //         (the "transferable to a forecast-based predictor" subset).
 //
-// Run: node analysis/label_analysis.js
+// Run: node study/analysis/label_analysis.js
 
 const { LABELS, ROWS } = require("./label_data");
 

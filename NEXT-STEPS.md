@@ -59,7 +59,11 @@ Sections:
 Done before the Python migration (C) so the new code lands in its final
 layout once instead of being written and then moved.
 
-- [ ] **B1. Reorganise folders.** Two code worlds (the predictor and the
+- [x] **B1. Reorganise folders.** (Done; see README Layout. The old
+  `fixtures/`, `photos/`, `analysis/`, `user-input/`, `photosunset/` are gone.
+  Directories had lost their write bit, probably from a Windows-to-Unix copy;
+  restored with `chmod u+w`. Stray `rq401.json` moved to `study/scratch/`;
+  decide whether to delete it. Plan text below is the original proposal.) Two code worlds (the predictor and the
   rating study) plus, later, the user-facing app. Proposed layout:
   ```
   src/sunset/             predictor library (scoring, live data, terrain);

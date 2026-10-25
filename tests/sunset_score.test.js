@@ -8,13 +8,12 @@
 // change is expected: update the expected value AND note why in the same
 // commit, don't just silence the test.
 //
-// Run: node --test src/sunset_score.test.js
-// (node --test src/ without naming the file doesn't resolve correctly on
-// this Windows/Node setup - always name the file explicitly.)
+// Run: node --test tests/sunset_score.test.js
+// (run it from the repo root: `npm test`.)
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { score, SCENARIOS } = require("./sunset_score");
+const { score, SCENARIOS } = require("../src/sunset/sunset_score");
 
 const EXPECTED_SCORES = {
   "Post-frontal classic": 90,

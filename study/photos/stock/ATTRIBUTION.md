@@ -24,7 +24,7 @@ terms require attribution if these are ever reused publicly.
 | STOCK_15.jpg | Sunset Sky (11422997305) | Public domain |
 | STOCK_16.jpg | Sails in a Red Sunset, Carlsbad, CA 8-1987 (6053993420) | CC BY-SA 2.0 |
 
-Full source URLs and page titles are in `analysis/stock_manifest.json`.
+Full source URLs and page titles are in `study/photos/stock_manifest.json`.
 
 ## A note on the selection
 

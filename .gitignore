@@ -226,7 +226,7 @@ node_modules/
 .DS_Store
 
 # Scratch satellite imagery pulled while validating Tier 3 (regenerable, ~46 MB)
-analysis/sat_test/
+study/scratch/sat_test/
 
-# Unrated camera photos (~62 MB); originals live in the Drive folder listed in photosunset/
-photos/unused/
+# Unrated camera photos (~62 MB); originals live in the Drive folder listed in study/photos/drive-shortcuts/
+study/photos/unused/

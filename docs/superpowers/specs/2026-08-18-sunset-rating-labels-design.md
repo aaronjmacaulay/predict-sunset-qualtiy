@@ -21,13 +21,13 @@ then use the labels to:
 
 ## 2. Data sources
 
-- `user-input/photo-ratings.md` — 8 original camera photos, Sandy + Aaron,
-  16 reviews total. Fully tagged (see `analysis/label_data.js`).
-- `user-input/stock-userratings.md`, `user-input/stock-aaronreview.md` — blank
-  templates for 16 additional stock photos (`photos/stock/`), chosen to fill
+- `study/ratings/photo-ratings.md` — 8 original camera photos, Sandy + Aaron,
+  16 reviews total. Fully tagged (see `study/analysis/label_data.js`).
+- `study/ratings/stock-userratings.md`, `study/ratings/stock-aaronreview.md` — blank
+  templates for 16 additional stock photos (`study/photos/stock/`), chosen to fill
   condition/quality gaps the original 8 didn't cover. Not yet filled in —
   pending Sandy and Aaron.
-- `photos/used/` vs `photos/unused/` — the 8 rated vs. 33 unrated original
+- `study/photos/used/` vs `study/photos/unused/` — the 8 rated vs. 33 unrated original
   camera photos (`IMG_7206.jpg` was recovered separately; it was referenced
   in ratings but missing from the original download batch).
 
@@ -86,7 +86,7 @@ without a photo:
   first batch of stock-photo reviews (see §5b). Both default to `0` across
   all 16 existing reviews — a clean additive change, no re-tagging needed,
   and confirmed to leave every existing correlation/regression number
-  unchanged (`analysis/label_analysis.js` rerun, identical output for prior
+  unchanged (`study/analysis/label_analysis.js` rerun, identical output for prior
   labels).
 
 ## 4. Tagging methodology — turning free text into label values
@@ -132,7 +132,7 @@ since it hasn't clearly mattered for the analysis so far.
 
 Originally `cloud_type_color` combined structure and color into one label.
 Splitting it surfaced two real tagging bugs, both now fixed in
-`analysis/label_data.js`:
+`study/analysis/label_data.js`:
 
 - IMG_2081/Aaron: "nice bright orange on the clouds" had been tagged to
   *both* `cloud_type_color` and `color_vibrancy` — a straightforward
@@ -178,16 +178,16 @@ taxonomy didn't have room for:
 - **"Not a sunset" is a data-quality flag, not a label.** Aaron marked
   STOCK_09 this way, and separately declined to rate STOCK_06/10/11/16 as
   "too artificial or weren't sunset photos" (STOCK_10/11/16 have since been
-  removed from `photos/stock/` entirely). These get **excluded and replaced**
+  removed from `study/photos/stock/` entirely). These get **excluded and replaced**
   with a different photo under the same STOCK_NN slot — never tagged with
   any label — the same way the original 4 mistagged stock photos were
-  swapped out right after download (see `photos/stock/ATTRIBUTION.md`).
+  swapped out right after download (see `study/photos/stock/ATTRIBUTION.md`).
   Replacements for STOCK_06/09/10/11/16 are pending as of this writing.
 
 ## 6. Findings so far (n=16, pending the 16 stock-photo ratings)
 
-Full detail and code: `analysis/report.md`, `analysis/label_analysis.js`,
-`analysis/label_data.js`. Headlines:
+Full detail and code: `study/analysis/report.md`, `study/analysis/label_analysis.js`,
+`study/analysis/label_data.js`. Headlines:
 
 - **Photo-specific labels correlate most strongly with score** —
   `foreground_quality` (r=0.60), `focus_sharpness` (r=0.59),
@@ -212,10 +212,10 @@ Full detail and code: `analysis/report.md`, `analysis/label_analysis.js`,
 
 - Replace STOCK_06, STOCK_09, STOCK_10, STOCK_11, STOCK_16 (flagged by
   Aaron as artificial-looking or not sunsets at all; three of the five
-  files are already gone from `photos/stock/`) and get his reviews for the
+  files are already gone from `study/photos/stock/`) and get his reviews for the
   replacements before merging his stock ratings anywhere.
 - Get Sandy and Aaron's ratings for the 16 stock photos
-  (`user-input/stock-userratings.md`, `user-input/stock-aaronreview.md`),
+  (`study/ratings/stock-userratings.md`, `study/ratings/stock-aaronreview.md`),
   merge into `photo-ratings.md` the same way as before, hand-tag against
   this taxonomy, and rerun both analysis passes at n=48 (3 ratings per
   photo now — enables real inter-rater agreement stats, not just n=8-per-

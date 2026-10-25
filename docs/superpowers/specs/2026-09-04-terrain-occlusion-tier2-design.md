@@ -24,7 +24,7 @@ with Tier 1's "no API key" approach.
 
 ## 3. Architecture
 
-**New file: `src/terrain.js`**, no dependency on `pinpoint.js` (the
+**New file: `src/sunset/terrain.js`**, no dependency on `pinpoint.js` (the
 great-circle destination-point formula is duplicated rather than imported,
 so `terrain.js` stays independently testable — see `sunset_score.js`'s
 precedent of isolation from I/O). Exports `getTerrainBlockDeg(lat, lon,

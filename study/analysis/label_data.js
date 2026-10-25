@@ -1,10 +1,10 @@
 // label_data.js — hand-tagged label dataset for the sunset rating labels analysis.
 //
-// Source text: user-input/photo-ratings.md (8 photos x 2 raters = 16 reviews).
+// Source text: study/ratings/photo-ratings.md (8 photos x 2 raters = 16 reviews).
 // Each review was read and scored per label on a signed scale:
 //   +1 = theme was praised   -1 = theme was criticized   0 = not mentioned (or a wash)
 //
-// Labels are grouped into three tiers (see analysis/README.md for the reasoning):
+// Labels are grouped into three tiers (see study/analysis/README.md for the reasoning):
 //   sky_weather     - forecastable from a weather model (cloud cover, type/structure, color, aerosol clarity)
 //   geometry        - forecastable from sun position + viewpoint, no weather model needed
 //   photo_specific  - an artifact of that exact photo/photographer/location; not forecastable

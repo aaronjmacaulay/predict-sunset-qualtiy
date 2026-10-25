@@ -1,9 +1,9 @@
 # Sunset rating label analysis — first pass
 
-Source data: `user-input/photo-ratings.md` (8 photos x 2 raters = 16 reviews),
+Source data: `study/ratings/photo-ratings.md` (8 photos x 2 raters = 16 reviews),
 hand-tagged into 11 signed labels (+1 praised / -1 criticized / 0 not mentioned)
-across three tiers. See `analysis/label_data.js` for the full tagged dataset and
-per-row reasoning, `analysis/label_analysis.js` for the analysis code.
+across three tiers. See `study/analysis/label_data.js` for the full tagged dataset and
+per-row reasoning, `study/analysis/label_analysis.js` for the analysis code.
 
 Tiers:
 - **sky_weather** — forecastable from a weather model: `cloud_amount`,

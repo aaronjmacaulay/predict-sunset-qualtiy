@@ -15,7 +15,7 @@ The project has two halves that are deliberately being worked in parallel:
 Half 2 exists because half 1 quietly assumes a single universal "good
 sunset". If that assumption is wrong, the target variable changes shape and
 the scoring architecture has to change with it. See
-[risk-poc.md](risk-poc.md).
+[risk-poc.md](research/risk-poc.md).
 
 ---
 
@@ -29,14 +29,14 @@ the scoring architecture has to change with it. See
 | Satellite cross-check (Tier 3, phase 1) | Workflow validated manually (interactive, no ML yet) — not automated into a script |
 | Photo corpus | 42 camera photos + 16 licensed stock photos downloaded locally |
 | Human ratings | 8 photos rated by 2 raters (Sandy, Aaron), 16 reviews; 16 stock photos still awaiting ratings |
-| Label analysis | First pass done — see [analysis/report.md](analysis/report.md) |
+| Label analysis | First pass done — see [study/analysis/report.md](study/analysis/report.md) |
 
 **Headline finding so far:** in the 16 reviews collected, the strongest
 correlates of score are *photo-specific* (foreground quality, focus), not
 sky conditions. Restricting to labels a weather forecast could ever see
 drops leave-one-out R² from 0.54 to 0.21. Small sample, but it points at a
 real ceiling on forecast-only prediction. Details and caveats in
-[analysis/report.md](analysis/report.md) and the full label taxonomy in
+[study/analysis/report.md](study/analysis/report.md) and the full label taxonomy in
 [docs/superpowers/specs/2026-08-18-sunset-rating-labels-design.md](docs/superpowers/specs/2026-08-18-sunset-rating-labels-design.md).
 
 ---
@@ -50,8 +50,8 @@ the tool up in tiers, each closing a specific accuracy gap in the one
 before it:
 
 1. **[Tier 1 — pinpoint scoring tool](docs/superpowers/specs/2026-09-04-pinpoint-scoring-tool-design.md)**
-   — Ports the scoring formula to JavaScript (`src/sunset_score.js`) and
-   wires it to live data via `src/pinpoint.js`: given a lat/lon and date,
+   — Ports the scoring formula to JavaScript (`src/sunset/sunset_score.js`) and
+   wires it to live data via `src/sunset/pinpoint.js`: given a lat/lon and date,
    fetch the actual sunset time, compute solar azimuth, sample cloud cover
    upwind along that bearing, and produce a score. Known gap: a single bad
    upwind weather-grid cell can wrongly zero out the score — a "hyperlocal
@@ -59,7 +59,7 @@ before it:
 
 2. **[Tier 2 — terrain occlusion](docs/superpowers/specs/2026-09-04-terrain-occlusion-tier2-design.md)**
    — Replaces Tier 1's flat-horizon assumption with a real horizon profile
-   computed from elevation data (`src/terrain.js`), so mountains/ridges in
+   computed from elevation data (`src/sunset/terrain.js`), so mountains/ridges in
    the sunset direction correctly reduce the score. Pure geometry, no
    weather data. Known gaps: no buildings/trees, and DEM resolution (~90m)
    misses small local features.
@@ -98,7 +98,7 @@ In brief:
 Status: n=16 reviews (8 camera photos × Sandy + Aaron). The 16 stock photos
 chosen to cover conditions the first batch missed (marine layer, overcast,
 wildfire smoke, cirrus-heavy) are downloaded but still awaiting ratings in
-`user-input/stock-userratings.md` / `stock-aaronreview.md`.
+`study/ratings/stock-userratings.md` / `stock-aaronreview.md`.
 
 This connects to the live tool in one specific place: the `photo_specific`
 tier in the taxonomy is exactly the category `terrain.js`'s docs point to
@@ -110,48 +110,46 @@ tree or building in frame) — not a gap later tiers are meant to close.
 ## Layout
 
 ```
-research.md              Main design doc — physics, existing tools, every input
+research/
+  research.md            Main design doc — physics, existing tools, every input
                          variable with its literal API parameter and source link
-risk-poc.md              Risk ranking + the rating-consistency POC design
-Sunset_Forecasting_Tool_Notes.docx   Word version of the research notes
+  risk-poc.md            Risk ranking + the rating-consistency POC design
+  Sunset_Forecasting_Tool_Notes.docx   Word version of the research notes
 
-docs/superpowers/specs/
+docs/superpowers/specs/  Design docs (stay where the superpowers workflow puts them)
   2026-08-18-sunset-rating-labels-design.md   Label taxonomy, tagging methodology, findings
   2026-09-04-pinpoint-scoring-tool-design.md  Tier 1 design doc
   2026-09-04-terrain-occlusion-tier2-design.md Tier 2 design doc
   2026-09-04-tier3-satellite-phase1-design.md Tier 3 phase 1 design doc
 
-src/
+src/sunset/              The predictor
   sunset_score.py        The original scoring model. Stdlib only, no deps.
   sunset_score.js        Direct JS port, verified to reproduce the Python worked
                          examples exactly. Pure functions, no I/O.
-  sunset_score.test.js   Test file for the above.
   pinpoint.js            Live tool: lat/lon/date -> real score via Open-Meteo (Tier 1).
   terrain.js             Real horizon-profile occlusion from elevation data (Tier 2).
 
-analysis/
-  label_data.js          16 reviews hand-tagged into 11 signed labels (+1/-1/0)
-  label_analysis.js      Correlation + ridge regression passes over that data
-  report.md              Written-up findings from the above
-  stock_manifest.json    Source URL, license, and sky-condition tag per stock photo
-  sat_test/              Satellite JPEGs pulled/cropped while validating Tier 3 phase 1
+tests/
+  sunset_score.test.js   Regression test for the scorer.
+  fixtures/              Recorded API responses for offline tests (empty so far).
 
-user-input/
-  photo-ratings.md       Sandy + Aaron ratings for 8 camera photos (filled in)
-  stock-userratings.md   Blank rating template for the 16 stock photos
-  stock-aaronreview.md   Blank review table for the same 16
+study/                   The rating study, all in one place
+  ratings/               photo-ratings.md (Sandy + Aaron, 8 camera photos, filled in);
+                         stock-userratings.md / stock-aaronreview.md (blank templates
+                         for the 16 stock photos)
+  analysis/              label_data.js (16 reviews hand-tagged into signed labels),
+                         label_analysis.js (correlation + ridge), report.md (findings)
+  photos/
+    used/     (8)        The camera photos that have been rated
+    unused/   (34)       Downloaded but not yet rated (not in git)
+    stock/    (16)       Wikimedia Commons photos + ATTRIBUTION.md
+    stock_manifest.json  Source URL, license, and sky-condition tag per stock photo
+    drive-shortcuts/     The original 41 Google Drive shortcuts (.url); provenance
+  scratch/               sat_test/ (Tier 3 satellite JPEGs, not in git) and
+                         rq401.json (leftover Wikimedia search response)
 
-photos/
-  used/     (8)          The camera photos that have been rated
-  unused/   (34)         Downloaded but not yet rated
-  stock/    (16)         Wikimedia Commons photos + ATTRIBUTION.md
-
-photosunset/             The original 41 Google Drive shortcuts (.url) these
-                         photos came from. Superseded by photos/ — kept as
-                         provenance.
 design/                  UI mockups (Main.dc.html, sunset-scout-mockup.html) —
                          not wired to the scoring/live tools yet.
-fixtures/                Empty.
 ```
 
 ---
@@ -165,13 +163,13 @@ All three commands also work as npm scripts: `npm test`, `npm run analyze`,
 then all 9 scenarios with a bar chart:
 
 ```bash
-python src/sunset_score.py
+python src/sunset/sunset_score.py
 ```
 
 **The live pinpoint tool (Tier 1+2, JS)** — scores a real coordinate/date:
 
 ```bash
-node src/pinpoint.js <lat> <lon> [YYYY-MM-DD]
+node src/sunset/pinpoint.js <lat> <lon> [YYYY-MM-DD]
 ```
 
 Date defaults to today (resolved in the location's own local timezone, not
@@ -181,7 +179,7 @@ UTC). Works for past and future dates via Open-Meteo's forecast API.
 regressions:
 
 ```bash
-node analysis/label_analysis.js
+node study/analysis/label_analysis.js
 ```
 
 Verified working (Node v24). No dependencies, no `package.json` — plain
@@ -209,14 +207,14 @@ weather/AQ data instead of hand-written scenario constants, and Tier 2 adds
 a fifth input — `terrain_block_deg`, a real horizon-occlusion angle instead
 of the flat-horizon assumption — into the `gate` term.
 
-Full derivation in [research.md](research.md) §8.
+Full derivation in [research.md](research/research.md) §8.
 
 ---
 
 ## Next steps
 
 1. **Rate the 16 stock photos** — templates are sitting blank in
-   `user-input/`. They were chosen to cover conditions the camera photos
+   `study/ratings/`. They were chosen to cover conditions the camera photos
    missed (marine layer, overcast, wildfire smoke, cirrus-heavy) so the
    label analysis stops being dominated by one kind of sky.
 2. **Rate more of the 34 unused camera photos** — n=16 reviews is too
@@ -243,26 +241,26 @@ Full derivation in [research.md](research.md) §8.
 
 ## Housekeeping notes
 
-- `photos/` is ~148 MB — wants a `.gitignore` or LFS rather than going
+- `study/photos/` is ~148 MB — wants a `.gitignore` or LFS rather than going
   straight into git.
-- `analysis/report.md` and `label_data.js` both reference an
-  `analysis/README.md` that doesn't exist.
-- `analysis/report.md` documents 2 analysis passes; `label_analysis.js` now
+- `study/analysis/report.md` and `label_data.js` both reference an
+  `study/analysis/README.md` that doesn't exist.
+- `study/analysis/report.md` documents 2 analysis passes; `label_analysis.js` now
   runs 4 ridge variants (it gained two `rater_id` passes). The report is
   slightly behind the code.
 - `report.md` says "33 remaining downloaded, unrated photos"; the actual
-  count in `photos/unused/` is 34.
-- `photos/used/IMG_7206.jpg` has no matching `.url` shortcut in
-  `photosunset/` — it came from somewhere other than the Drive folder.
+  count in `study/photos/unused/` is 34.
+- `study/photos/used/IMG_7206.jpg` has no matching `.url` shortcut in
+  `study/photos/drive-shortcuts/` — it came from somewhere other than the Drive folder.
 - CC BY / CC BY-SA stock photos require attribution if ever published. Keep
-  [photos/stock/ATTRIBUTION.md](photos/stock/ATTRIBUTION.md) with the
+  [study/photos/stock/ATTRIBUTION.md](study/photos/stock/ATTRIBUTION.md) with the
   images.
 - Keep `sunset_score.py` and `sunset_score.js` in sync manually if the
   scoring formula changes — there's no automated cross-check between them.
 
 ## Licensing
 
-Code and docs are the project's own. The stock photos in `photos/stock/` are
+Code and docs are the project's own. The stock photos in `study/photos/stock/` are
 third-party (CC BY, CC BY-SA, public domain) and keep their own licenses; see
-[photos/stock/ATTRIBUTION.md](photos/stock/ATTRIBUTION.md). Redistribute them
+[study/photos/stock/ATTRIBUTION.md](study/photos/stock/ATTRIBUTION.md). Redistribute them
 unmodified and with that file.

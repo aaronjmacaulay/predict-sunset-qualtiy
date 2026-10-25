@@ -91,7 +91,7 @@ module.exports = { getTerrainBlockDeg, elevationAngleDeg, destinationPoint, BEAR
 if (require.main === module) {
   const [, , latArg, lonArg, azArg] = process.argv;
   if (!latArg || !lonArg || !azArg) {
-    console.error("Usage: node src/terrain.js <lat> <lon> <sunsetAzimuthDeg>");
+    console.error("Usage: node src/sunset/terrain.js <lat> <lon> <sunsetAzimuthDeg>");
     process.exit(1);
   }
   getTerrainBlockDeg(parseFloat(latArg), parseFloat(lonArg), parseFloat(azArg)).then((result) => {

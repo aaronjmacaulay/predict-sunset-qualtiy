@@ -1,6 +1,6 @@
 // pinpoint.js — Tier 1 + Tier 2 live pinpoint sunset scoring tool.
 //
-// Usage: node src/pinpoint.js <lat> <lon> [YYYY-MM-DD]
+// Usage: node src/sunset/pinpoint.js <lat> <lon> [YYYY-MM-DD]
 // Date defaults to today. Scores the FORECASTED conditions at that date's
 // sunset hour (rounded to the nearest hourly bucket), not conditions "now".
 //
@@ -209,7 +209,7 @@ async function run(lat, lon, dateStr) {
 
 const [, , latArg, lonArg, dateArg] = process.argv;
 if (!latArg || !lonArg) {
-  console.error("Usage: node src/pinpoint.js <lat> <lon> [YYYY-MM-DD]");
+  console.error("Usage: node src/sunset/pinpoint.js <lat> <lon> [YYYY-MM-DD]");
   process.exit(1);
 }
 const lat = parseFloat(latArg), lon = parseFloat(lonArg);

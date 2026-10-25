@@ -15,9 +15,9 @@ satellite/webcam) build on top of.
 
 `sunset_score.py` is Python, but there is no real Python installed on this
 machine — only the Windows Store stub alias. Node.js is what's actually on
-PATH and what the label-analysis scripts (`analysis/*.js`) already use. To
+PATH and what the label-analysis scripts (`study/analysis/*.js`) already use. To
 keep this testable and runnable, the scoring math was ported to
-`src/sunset_score.js` (pure functions, no I/O) rather than extended in a
+`src/sunset/sunset_score.js` (pure functions, no I/O) rather than extended in a
 language that can't be executed here. The port was verified to reproduce
 `sunset_score.py`'s worked example exactly: "Post-frontal classic" → 90/100,
 and all 9 scenarios in `SCENARIOS` match. Keep both files in sync manually
@@ -27,14 +27,14 @@ if the scoring formula changes; there's no automated cross-check.
 
 Two files, split so the pure scoring math stays independently testable:
 
-- **`src/sunset_score.js`** — direct port of `sunset_score.py`. No network
+- **`src/sunset/sunset_score.js`** — direct port of `sunset_score.py`. No network
   I/O. Exports `score()`, `label()`, `SCENARIOS`, and the four term
   functions.
-- **`src/pinpoint.js`** — the live tool. All fetching and geometry live
+- **`src/sunset/pinpoint.js`** — the live tool. All fetching and geometry live
   here; it builds the same input shape `sunset_score.py` already uses and
   calls `score(..., trace=true)`.
 
-CLI: `node src/pinpoint.js <lat> <lon> [YYYY-MM-DD]`. Date defaults to
+CLI: `node src/sunset/pinpoint.js <lat> <lon> [YYYY-MM-DD]`. Date defaults to
 today. Works for past dates too (tested against yesterday) as well as
 future forecast dates, since Open-Meteo's `start_date`/`end_date` params
 cover both without needing a separate historical API.
