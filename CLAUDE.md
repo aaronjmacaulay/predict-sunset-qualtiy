@@ -2,7 +2,8 @@
 
 Forecasts how good a sunset will be at a specific lat/lon/date, and studies
 whether "good" is the same for everyone or needs per-user preferences.
-See README.md for the full picture and NEXT-STEPS.md for the plan.
+See README.md for the full picture, ARCHITECTURE.md for structure and
+dependency rules, and NEXT-STEPS.md for the plan.
 
 ## Commands
 

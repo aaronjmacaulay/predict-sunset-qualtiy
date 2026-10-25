@@ -14,7 +14,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 Suggested order of work:
 
 A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests) → B2b →
-D1 + D5 (right after C1) → rest of D as needed → E → F1–F4 (in parallel with
+D as needed → E → F1–F4 (in parallel with
 the above, by the human raters) → G1–G3 → F5–F7 → G4–G5.
 
 Sections:
@@ -22,8 +22,8 @@ Sections:
 - **A. Repo foundations** - version control, CLAUDE.md, scripts.
 - **B. Restructure by role** - folder layout, structured ratings data.
 - **C. Python migration, then tests** - port to Python with uv, pytest.
-- **D. Design improvements** - changes to the predictor's structure and
-  behaviour, suggested by Claude after reviewing the JS code.
+- **D. Design improvements** - modelling and efficiency changes suggested by
+  Claude (structural issues live in ARCHITECTURE.md).
 - **E. Housekeeping fixes** - small inconsistencies in docs and data.
 - **F. Research / product** - rating study, calibration, Tier 3 work, and F2
   personalisation.
@@ -60,38 +60,11 @@ Sections:
 Done before the Python migration (C) so the new code lands in its final
 layout once instead of being written and then moved.
 
-- [x] **B1. Reorganise folders.** (Done; see README Layout. The old
-  `fixtures/`, `photos/`, `analysis/`, `user-input/`, `photosunset/` are gone.
+- [x] **B1. Reorganise folders.** Done; see README Layout, and
+  ARCHITECTURE.md for the areas and layout decisions (no `build/`,
+  `study/` as one folder, `app/` reserved, where personalisation lives).
   Directories had lost their write bit, probably from a Windows-to-Unix copy;
-  restored with `chmod u+w`. Stray `rq401.json` moved to `study/scratch/`;
-  decide whether to delete it. Plan text below is the original proposal.) Two code worlds (the predictor and the
-  rating study) plus, later, the user-facing app. Proposed layout:
-  ```
-  src/sunset/             predictor library (scoring, live data, terrain);
-                          until C1 the existing .py/.js files are moved as-is
-  tests/ (+ fixtures/)    tests and recorded API responses (fixtures/ is
-                          currently empty at the root; move it here)
-  study/                  the whole rating study in one place: photos/
-                          (used, stock), ratings, analysis scripts, report,
-                          stock manifest, sat_test (or scratch/ignored)
-  research/               research.md, risk-poc.md, the .docx (background only)
-  docs/superpowers/       specs/ and plans/ - STAY where superpowers puts them
-  design/                 UI mockups (Sunset Scout) for the future app
-  app/                    reserved name; created after G1/G2, not before
-  ```
-  Notes:
-  - No `build/` directory: Python needs no build step. A web app's tooling
-    will make its own output folder later (gitignored); CI lives in
-    `.github/`.
-  - `study/` replaces the old `data/` + `analysis/` + `user-input/` split.
-  - Personalisation: the function that turns features + a user profile into
-    a score belongs in `src/sunset/`; profile storage and display belong in
-    `app/`.
-  - Settle the Python package layout here (`src/sunset/`, modules, entry
-    points) so nothing moves twice. Archive `photosunset/` as provenance
-    (e.g. under `study/`). Update README layout section, CLAUDE.md and any
-    paths in code.
-  *Done when:* all scripts still run and the README layout matches reality.
+  restored with `chmod u+w`.
 
 - [ ] **B2. Structured ratings data**, in two parts:
   - **B2a (done alongside C1):** replace hand-copied `label_data.js` with one
@@ -113,9 +86,11 @@ only one scorer.
   suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
   `terrain.js` and `analysis/label_analysis.js` to Python (the analysis reads
   the new `ratings.json` data from B2a rather than porting `label_data.js`).
-  Make `sunset_score.py` canonical: it currently says "frozen reference
-  copy", so update that docstring and carry over any changes made in the JS.
-  Then delete the JS.
+  Build the **target structure in ARCHITECTURE.md** (`models`, `scoring`,
+  `geo`, `terrain`, `sources/`, `pinpoint`, `cli`); this resolves structural
+  issues S1–S4 and S6–S8, and S5's fail-loudly part. `scoring.py` starts from
+  `sunset_score.py` (keep its docstrings; drop the "frozen reference copy"
+  note). Then delete the JS.
   **Tooling: uv.** Replace `package.json` with `pyproject.toml` + committed
   `uv.lock` (`.venv/` stays ignored). Commands become `uv run ...`
   (e.g. `uv run pytest`). Keep the core scorer and live tool stdlib-only
@@ -125,11 +100,11 @@ only one scorer.
   Carry over the existing regression test (9 scenario scores) as the first
   pytest. Python 3.14 is installed; numpy and pytest are not (uv will manage
   them).
-  **Port faithfully:** same behaviour as the JS (including worst-case upwind
-  cloud) so the Python can be checked against JS output; modelling changes
-  go in D. Two decisions to make during the port: keep Python's rounding
-  (`round(2.5)` = 2; JS gives 3), and make missing API values fail loudly
-  rather than silently becoming NaN (see D4).
+  **Faithful in behaviour, new in structure:** same scores for the same
+  inputs (including worst-case upwind cloud); modelling changes go in D.
+  Verify with the 9 scenario scores plus a live `pinpoint` run in JS and
+  Python for the same place and date (run both at the same time, since
+  forecasts update). Keep Python's rounding (`round(2.5)` = 2; JS gives 3).
   *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
 
 - [ ] **C2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
@@ -140,37 +115,26 @@ only one scorer.
 
 ## D. Design improvements (suggested by Claude)
 
-Observations from Claude's review of the JS code (Oct 2026), comparing it with
-the Python scorer. None is needed before the Python migration: C1 ports the
-current behaviour faithfully so it can be verified, and these follow it.
-D1 and D5 don't change any scores (the regression test guards that), so they
-are the best candidates to do straight after C1.
+From Claude's review of the JS code (Oct 2026). **Structural issues** are
+tracked in ARCHITECTURE.md (S1–S9); C1 resolves most of them by building the
+target structure, and S9 belongs to F2. What remains here are modelling and
+efficiency changes. None is needed before C1, which keeps behaviour
+unchanged so it can be verified.
 
-- [ ] **D1. Return the features, not just the score.** `score()` computes the
-  four terms and their sub-factors, then returns one integer; the terms only
-  reach the screen through trace printing. Return them as a structured
-  result. Prerequisite for personalisation (F2.2).
-- [ ] **D2. Revisit worst-case upwind cloud.** Low cloud is the *max* of 3
+- [ ] **D1. Revisit worst-case upwind cloud.** Low cloud is the *max* of 3
   samples (50/150/250 km), so one cloudy grid cell sets the whole light-path
   term (the Tier 1 spec's known weakness). Averaging or distance-weighting is
   a modelling choice; decide it deliberately, ideally against ratings data.
-- [ ] **D3. Interpolate to sunset time.** Weather is taken at the nearest
+- [ ] **D2. Interpolate to sunset time.** Weather is taken at the nearest
   hourly bucket (a 7:29 pm sunset uses 7:00 data). Interpolating between the
   two surrounding hours is more faithful.
-- [ ] **D4. Handle missing API data.** No checks for `null` in Open-Meteo
-  responses; a missing AOD or visibility value would produce NaN rather than
-  an error (plausible where air-quality coverage is patchy; not yet tested).
-  C1 should at least fail loudly; D4 decides fallbacks (e.g. default AOD).
-- [ ] **D5. Separate computing from printing.** Trace output lives inside
-  `score()` and `pinpoint` prints as it goes. Return a result object and
-  format it separately, so an app or alert job can use the same code.
-- [ ] **D6. Batch the upwind weather requests.** The 3 upwind points are 3
+- [ ] **D3. Fallbacks for missing API data.** After C1, missing values fail
+  loudly (S5). Decide whether some should fall back instead (e.g. a default
+  AOD where air-quality coverage is missing) and how the result says so.
+- [ ] **D4. Batch the upwind weather requests.** The 3 upwind points are 3
   separate calls; Open-Meteo accepts multiple coordinates per request
   (`terrain` already does this for elevation; the forecast endpoint very
   likely does too, to verify).
-- [ ] **D7. Share geometry helpers.** `destinationPoint()` is duplicated in
-  `pinpoint` and `terrain` on purpose (to keep `terrain` standalone). In the
-  Python package, put it in a shared `geo` module.
 
 ## E. Housekeeping fixes
 
@@ -217,7 +181,7 @@ suggestive but not proven. The answer changes the product's output shape:
   (mean pairwise correlation ≳ 0.6 and no clusters ⇒ single score).
 - [ ] **F2.2.** Make `sunset_score` able to emit the decomposed features
   alongside the single score, so either outcome is supported without a
-  rewrite (implemented by D1).
+  rewrite (ScoreResult, built in C1; ARCHITECTURE.md S6).
 - [ ] **F2.3.** If taste differs, choose how profiles are obtained:
   (a) user picks/weights archetypes, (b) user rates ~10 calibration photos
   on first use, (c) inferred from feedback ("was tonight good?").
@@ -227,6 +191,8 @@ suggestive but not proven. The answer changes the product's output shape:
   0.55 with photo labels in the first pass). Personalised *spot* knowledge
   (foreground, obstructions) may need to be a per-user/per-spot input
   rather than something forecast.
+- [ ] **F2.5.** Define the mapping between rating labels and score features
+  (ARCHITECTURE.md S9).
 
 ## G. Deployment (undefined — needs a decision before F7)
 
