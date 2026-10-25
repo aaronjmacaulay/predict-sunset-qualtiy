@@ -227,3 +227,6 @@ node_modules/
 
 # Scratch satellite imagery pulled while validating Tier 3 (regenerable, ~46 MB)
 analysis/sat_test/
+
+# Unrated camera photos (~62 MB); originals live in the Drive folder listed in photosunset/
+photos/unused/
