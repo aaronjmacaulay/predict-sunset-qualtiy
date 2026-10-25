@@ -9,6 +9,26 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ---
 
+## Overview
+
+Suggested order of work:
+
+A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests) → B2b →
+D → E1–E4 (in parallel with the above, by the human raters) → F1–F3 →
+E5–E7 → F4–F5.
+
+Sections:
+
+- **A. Repo foundations** - version control, CLAUDE.md, scripts.
+- **B. Restructure by role** - folder layout, structured ratings data.
+- **C. Python migration, then tests** - port to Python with uv, pytest.
+- **D. Housekeeping fixes** - small inconsistencies in docs and data.
+- **E. Research / product** - rating study, calibration, Tier 3 work, and E2
+  personalisation.
+- **F. Deployment** - product shape, hosting, CI, alerting, UI (undefined).
+
+---
+
 ## A. Repo foundations (do first — everything else gets safer)
 
 - [~] **A1. Put the work under version control.** Committed locally (not
@@ -192,8 +212,3 @@ Decisions needed:
   ~2–3 h before sunset → push/email if above threshold.
 - [ ] **F5. Wire the UI** (`design/`) to `pinpoint.js` output, or rebuild the
   mockup as real front-end code.
-
-## Suggested order
-
-A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests) → B2b → D → E1–E4 (in parallel with the above, by
-the human raters) → F1–F3 → E5–E7 → F4–F5.
