@@ -36,15 +36,17 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ## B. Python migration, then tests
 
-Order decided: migrate to Python first (B1), then write tests in pytest (B2).
-The old parity test is dropped: once the JS is gone there is only one scorer.
+Order decided: reorganise folders first (C1), then migrate to Python (B1),
+then write tests in pytest (B2). Doing C1 first means the Python lands in its
+final layout once, instead of being written and then moved. The old parity
+test is dropped: once the JS is gone there is only one scorer.
 
 - [ ] **B1. Migrate back to Python.**
   The JS port only existed because the original Windows machine had no
   working Python (Tier 1 spec §2); Python is the team's stronger language and
   suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
-  `terrain.js`, `analysis/label_analysis.js` and `analysis/label_data.js` to
-  Python, make `src/sunset_score.py` canonical (it currently says "frozen
+  `terrain.js` and `analysis/label_analysis.js` to Python (the analysis reads
+  the new `ratings.json` data from C2a rather than porting `label_data.js`), make `src/sunset_score.py` canonical (it currently says "frozen
   reference copy"; update that docstring and carry over any changes made in
   the JS), then delete the JS.
   **Tooling: uv.** Replace `package.json` with `pyproject.toml` + committed
@@ -65,23 +67,28 @@ The old parity test is dropped: once the JS is gone there is only one scorer.
 
 ## C. Restructure by role
 
-- [ ] **C1. Reorganise folders.** Proposed layout:
+- [ ] **C1. Reorganise folders. DO FIRST (before B1).** Proposed layout:
   ```
-  src/        scoring, live tool, terrain
+  src/sunset/ Python package (scoring, live tool, terrain) - target layout
+              for B1; until B1 the existing .py/.js files are moved as-is
   research/   research.md, risk-poc.md, specs/, the .docx
   data/       photos/, ratings, stock manifest
   analysis/   scripts + report only
   design/     mockups
   ```
-  Move `sat_test` to `data/` or scratch; archive `photosunset/` as provenance.
-  Update README layout section and any paths in code.
+  Settle the Python package layout here (`src/sunset/` with modules and
+  entry points) so nothing moves twice. Move `sat_test` to `data/` or
+  scratch; archive `photosunset/` as provenance. Update README layout
+  section, CLAUDE.md and any paths in code.
   *Done when:* all scripts still run and the README layout matches reality.
 
-- [ ] **C2. Structured ratings data.** Replace markdown ratings +
-  hand-copied `label_data.js` with one `ratings.json`/CSV
-  (photo, rater, score, labels, tags). Generate `report.md` from it.
+- [ ] **C2. Structured ratings data**, in two parts:
+  - **C2a (during B1):** replace hand-copied `label_data.js` with one
+    `ratings.json`/CSV (photo, rater, score, labels, tags) that the Python
+    analysis reads. Avoids writing a JS loader only to rewrite it.
+  - **C2b (after B2):** generate `report.md` from the data.
   *Done when:* adding a rating means adding a row, then re-running
-  `npm run analyze`.
+  `uv run` the analysis.
 
 ## D. Housekeeping fixes
 
@@ -170,5 +177,5 @@ Decisions needed:
 
 ## Suggested order
 
-A1 → A2 → A3 → B1 (migrate) → B2 (tests) → C1 → C2 → D → E1–E4 (in parallel with the above, by
+A1 → A2 → A3 → C1 (reorganise) → B1 (migrate, with C2a) → B2 (tests) → C2b → D → E1–E4 (in parallel with the above, by
 the human raters) → F1–F3 → E5–E7 → F4–F5.
