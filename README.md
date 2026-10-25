@@ -158,6 +158,9 @@ fixtures/                Empty.
 
 ## Running things
 
+All three commands also work as npm scripts: `npm test`, `npm run analyze`,
+`npm run score -- <lat> <lon> [date]`, `npm run score:py`.
+
 **The scoring model (Python original)** — prints a traced worked example,
 then all 9 scenarios with a bar chart:
 
@@ -256,3 +259,10 @@ Full derivation in [research.md](research.md) §8.
   images.
 - Keep `sunset_score.py` and `sunset_score.js` in sync manually if the
   scoring formula changes — there's no automated cross-check between them.
+
+## Licensing
+
+Code and docs are the project's own. The stock photos in `photos/stock/` are
+third-party (CC BY, CC BY-SA, public domain) and keep their own licenses; see
+[photos/stock/ATTRIBUTION.md](photos/stock/ATTRIBUTION.md). Redistribute them
+unmodified and with that file.

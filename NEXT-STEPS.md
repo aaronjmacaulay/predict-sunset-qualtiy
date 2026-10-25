@@ -11,7 +11,10 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ## A. Repo foundations (do first — everything else gets safer)
 
-- [ ] **A1. Put the work under version control.**
+- [~] **A1. Put the work under version control.** Committed locally (not
+  pushed). Decision: commit `photos/used` + `photos/stock`; ignore
+  `photos/unused` and `analysis/sat_test`. Remaining: push to `origin` (the
+  `aaronjmacaulay` GitHub repo) once Sandy approves.
   Only the template `.gitignore` and README are committed; all source, docs
   and data are untracked. Ignore or LFS `analysis/sat_test/` (~46 MB) and
   `photos/unused/`; extend `.gitignore` for Node (`node_modules/`) and macOS
@@ -19,14 +22,14 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
   *Done when:* source, docs, specs, ratings and stock photos are committed in
   small logical commits and `git status` is clean.
 
-- [ ] **A2. Add a short `CLAUDE.md`.**
+- [x] **A2. Add a short `CLAUDE.md`.**
   Terse, agent-facing: commands, the "multiplicative, not averaged" rule,
   keep `.py`/`.js` scorers in sync, constants are uncalibrated and must not be
   tuned without ratings data, no API keys by design.
   *Done when:* a fresh agent session can run tests and the live tool from
   `CLAUDE.md` alone.
 
-- [ ] **A3. Add `package.json` with scripts.**
+- [x] **A3. Add `package.json` with scripts.**
   `npm test`, `npm run analyze`, `npm run score -- <lat> <lon> [date]`.
   Still zero dependencies.
   *Done when:* all three scripts run from the repo root.

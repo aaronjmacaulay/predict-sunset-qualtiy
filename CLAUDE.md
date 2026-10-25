@@ -6,7 +6,7 @@ See README.md for the full picture and NEXT-STEPS.md for the plan.
 
 ## Commands
 
-No `package.json` and no dependencies; plain CommonJS on Node (v24 verified).
+`package.json` has scripts only (`npm test`, `npm run analyze`, `npm run score -- <lat> <lon>`); no dependencies, plain CommonJS on Node (v24 verified).
 
 ```bash
 node --test src/sunset_score.test.js   # scorer tests (the only test file; passes, 2 tests)

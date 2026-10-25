@@ -1,0 +1,15 @@
+{
+  "name": "predict-sunset-quality",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hyperlocal sunset quality forecasting and rating study",
+  "scripts": {
+    "test": "node --test",
+    "analyze": "node analysis/label_analysis.js",
+    "score": "node src/pinpoint.js",
+    "score:py": "python3 src/sunset_score.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
