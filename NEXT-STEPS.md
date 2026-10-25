@@ -34,43 +34,15 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
   Still zero dependencies.
   *Done when:* all three scripts run from the repo root.
 
-## B. Python migration, then tests
+## B. Restructure by role
 
-Order decided: reorganise folders first (C1), then migrate to Python (B1),
-then write tests in pytest (B2). Doing C1 first means the Python lands in its
-final layout once, instead of being written and then moved. The old parity
-test is dropped: once the JS is gone there is only one scorer.
+Done before the Python migration (C) so the new code lands in its final
+layout once instead of being written and then moved.
 
-- [ ] **B1. Migrate back to Python.**
-  The JS port only existed because the original Windows machine had no
-  working Python (Tier 1 spec §2); Python is the team's stronger language and
-  suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
-  `terrain.js` and `analysis/label_analysis.js` to Python (the analysis reads
-  the new `ratings.json` data from C2a rather than porting `label_data.js`), make `src/sunset_score.py` canonical (it currently says "frozen
-  reference copy"; update that docstring and carry over any changes made in
-  the JS), then delete the JS.
-  **Tooling: uv.** Replace `package.json` with `pyproject.toml` + committed
-  `uv.lock` (`.venv/` stays ignored). Commands become `uv run ...`
-  (e.g. `uv run pytest`). Keep the core scorer and live tool stdlib-only
-  (`urllib`/`requests` for API calls); numpy (or scikit-learn) only for the
-  analysis code, pytest in a dev dependency group. uv 0.12.1 is already
-  installed. Update CLAUDE.md, README and the specs that say "JS".
-  Carry over the existing regression test (9 scenario scores) as the first
-  pytest. Python 3.14 is installed; numpy and pytest are not (uv will manage them).
-  *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
-
-- [ ] **B2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
-  responses in `fixtures/` (currently empty).
-  *Done when:* `pytest` covers both modules offline.
-
-- ~~B3. Python/JS parity test~~ **Dropped**: unnecessary after B1.
-
-## C. Restructure by role
-
-- [ ] **C1. Reorganise folders. DO FIRST (before B1).** Proposed layout:
+- [ ] **B1. Reorganise folders.** Proposed layout:
   ```
   src/sunset/ Python package (scoring, live tool, terrain) - target layout
-              for B1; until B1 the existing .py/.js files are moved as-is
+              for C1; until C1 the existing .py/.js files are moved as-is
   research/   research.md, risk-poc.md, specs/, the .docx
   data/       photos/, ratings, stock manifest
   analysis/   scripts + report only
@@ -82,13 +54,45 @@ test is dropped: once the JS is gone there is only one scorer.
   section, CLAUDE.md and any paths in code.
   *Done when:* all scripts still run and the README layout matches reality.
 
-- [ ] **C2. Structured ratings data**, in two parts:
-  - **C2a (during B1):** replace hand-copied `label_data.js` with one
+- [ ] **B2. Structured ratings data**, in two parts:
+  - **B2a (done alongside C1):** replace hand-copied `label_data.js` with one
     `ratings.json`/CSV (photo, rater, score, labels, tags) that the Python
     analysis reads. Avoids writing a JS loader only to rewrite it.
-  - **C2b (after B2):** generate `report.md` from the data.
-  *Done when:* adding a rating means adding a row, then re-running
-  `uv run` the analysis.
+  - **B2b (after C2):** generate `report.md` from the data.
+  *Done when:* adding a rating means adding a row, then re-running the
+  analysis with `uv run`.
+
+## C. Python migration, then tests
+
+Order: B1 (folders) first, then migrate to Python (C1), then pytest tests
+(C2). The old Python/JS parity test is dropped: once the JS is gone there is
+only one scorer.
+
+- [ ] **C1. Migrate back to Python.**
+  The JS port only existed because the original Windows machine had no
+  working Python (Tier 1 spec §2); Python is the team's stronger language and
+  suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
+  `terrain.js` and `analysis/label_analysis.js` to Python (the analysis reads
+  the new `ratings.json` data from B2a rather than porting `label_data.js`).
+  Make `sunset_score.py` canonical: it currently says "frozen reference
+  copy", so update that docstring and carry over any changes made in the JS.
+  Then delete the JS.
+  **Tooling: uv.** Replace `package.json` with `pyproject.toml` + committed
+  `uv.lock` (`.venv/` stays ignored). Commands become `uv run ...`
+  (e.g. `uv run pytest`). Keep the core scorer and live tool stdlib-only
+  (`urllib`/`requests` for API calls); numpy (or scikit-learn) only for the
+  analysis code, pytest in a dev dependency group. uv 0.12.1 is already
+  installed. Update CLAUDE.md, README and the specs that say "JS".
+  Carry over the existing regression test (9 scenario scores) as the first
+  pytest. Python 3.14 is installed; numpy and pytest are not (uv will manage
+  them).
+  *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
+
+- [ ] **C2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
+  responses in `fixtures/` (currently empty).
+  *Done when:* `pytest` covers both modules offline.
+
+- ~~C3. Python/JS parity test~~ **Dropped**: unnecessary after C1.
 
 ## D. Housekeeping fixes
 
@@ -112,7 +116,7 @@ test is dropped: once the JS is gone there is only one scorer.
 6. [ ] **Automate Tier 3 satellite workflow** (phase 2); classifier is
    deliberately deferred.
 7. [ ] **Notifications / alerting** — blocked on F (deployment).
-8. [ ] **Tests for `pinpoint`/`terrain`** — covered by B2.
+8. [ ] **Tests for `pinpoint`/`terrain`** — covered by C2.
 
 ## E2. Personalisation (the question the rating study exists to answer)
 
@@ -177,5 +181,5 @@ Decisions needed:
 
 ## Suggested order
 
-A1 → A2 → A3 → C1 (reorganise) → B1 (migrate, with C2a) → B2 (tests) → C2b → D → E1–E4 (in parallel with the above, by
+A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests) → B2b → D → E1–E4 (in parallel with the above, by
 the human raters) → F1–F3 → E5–E7 → F4–F5.

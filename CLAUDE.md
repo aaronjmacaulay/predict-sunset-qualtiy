@@ -46,5 +46,5 @@ python src/sunset_score.py             # original scorer, worked examples, stdli
 - No git history beyond the initial commit (most files untracked), no CI,
   no deployment, no tests for `pinpoint.js`/`terrain.js`.
 - `design/` mockups are not wired to any code.
-- A repo reorganisation is planned (NEXT-STEPS C1). Update the paths in this
+- A repo reorganisation is planned (NEXT-STEPS B1). Update the paths in this
   file when it happens.
