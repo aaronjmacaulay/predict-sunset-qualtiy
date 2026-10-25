@@ -1,0 +1,198 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Work Sans', system-ui, sans-serif; background: #f4efe8; }
+    a { color: #b5401f; } a:hover { color: #8f3117; }
+    .heading { font-family: 'Lora', Georgia, serif; }
+  </style>
+</helmet>
+
+<div style="width:1440px; height:900px; position:relative; overflow:hidden; background:#f4efe8; color:#2a2622;">
+
+  <!-- Top bar -->
+  <div style="position:absolute; top:0; left:0; right:0; height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; background:#fbf7f1; border-bottom:1px solid #e6ddd0; z-index:20;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="14" r="6" stroke="#c8551f" stroke-width="1.6"/>
+        <path d="M4 14h16M2 18h20" stroke="#c8551f" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="heading" style="font-size:20px; font-weight:600; letter-spacing:0.2px;">Sunset Scout</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="display:flex; align-items:center; gap:8px; background:#f4efe8; border:1px solid #e6ddd0; border-radius:8px; padding:8px 14px; font-size:14px; color:#6b6255;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="#6b6255" stroke-width="1.6"/><path d="M3 9h18M8 3v4M16 3v4" stroke="#6b6255" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Tonight, Sep 5
+      </div>
+      <div style="width:34px; height:34px; border-radius:50%; background:#e9c9a8; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:#7a4a1f;">SM</div>
+    </div>
+  </div>
+
+  <!-- Map area -->
+  <div style="position:absolute; top:72px; left:0; right:0; bottom:0; overflow:hidden;">
+    <svg width="1440" height="828" viewBox="0 0 1440 828" style="display:block;">
+      <rect x="0" y="0" width="1440" height="828" fill="#dce7e6"/>
+      <!-- ocean -->
+      <path d="M0,0 L520,0 L470,180 L510,340 L440,520 L490,700 L430,828 L0,828 Z" fill="#c3d9de"/>
+      <!-- land -->
+      <path d="M520,0 L1440,0 L1440,828 L430,828 L490,700 L440,520 L510,340 L470,180 Z" fill="#e3ddc9"/>
+      <!-- terrain shading -->
+      <path d="M760,120 L920,90 L1040,220 L960,330 L800,300 Z" fill="#d6cdae" opacity="0.7"/>
+      <path d="M600,420 L780,460 L820,600 L640,640 L560,540 Z" fill="#d6cdae" opacity="0.6"/>
+      <path d="M950,500 L1160,470 L1220,620 L1040,700 L940,600 Z" fill="#cfd6b8" opacity="0.55"/>
+      <!-- rivers -->
+      <path d="M700,60 C 660,220 730,360 650,520 S 560,760 500,820" stroke="#a9c2c8" stroke-width="5" fill="none" opacity="0.8"/>
+      <!-- graticule -->
+      <g stroke="#b9c7c8" stroke-width="1" opacity="0.45">
+        <line x1="0" y1="180" x2="1440" y2="180"/>
+        <line x1="0" y1="380" x2="1440" y2="380"/>
+        <line x1="0" y1="580" x2="1440" y2="580"/>
+        <line x1="360" y1="0" x2="360" y2="828"/>
+        <line x1="720" y1="0" x2="720" y2="828"/>
+        <line x1="1080" y1="0" x2="1080" y2="828"/>
+      </g>
+    </svg>
+
+    <!-- Pins -->
+    <sc-for list="{{spots}}" as="spot" hint-placeholder-count="9">
+      <div style="position:absolute; left:{{spot.x}}px; top:{{spot.y}}px; transform:translate(-50%,-100%); cursor:pointer; z-index:{{spot.z}};" onClick="{{spot.select}}">
+        <svg width="{{spot.size}}" height="{{spot.size}}" viewBox="0 0 40 48" style="display:block; filter:drop-shadow(0 2px 4px rgba(40,25,10,0.25));">
+          <path d="M20 0C9 0 0 8.7 0 19.4 0 33 20 48 20 48S40 33 40 19.4C40 8.7 31 0 20 0Z" fill="{{spot.color}}"/>
+          <circle cx="20" cy="19" r="9" fill="#fff8ef"/>
+          <text x="20" y="23" text-anchor="middle" font-family="Work Sans" font-size="11" font-weight="600" fill="{{spot.textColor}}">{{spot.score}}</text>
+        </svg>
+      </div>
+    </sc-for>
+
+    <!-- Popup card -->
+    <sc-if value="{{selected}}" hint-placeholder-val="{{true}}">
+      <div style="position:absolute; left:{{selected.cardX}}px; top:{{selected.cardY}}px; width:280px; background:#fffdf9; border-radius:14px; box-shadow:0 12px 32px rgba(40,28,12,0.22); border:1px solid #ece2d2; padding:20px; z-index:50;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div>
+            <div class="heading" style="font-size:17px; font-weight:600; color:#2a2622;">{{selected.name}}</div>
+            <div style="font-size:12.5px; color:#8a8071; margin-top:2px;">{{selected.region}}</div>
+          </div>
+          <div onClick="{{selected.close}}" style="cursor:pointer; color:#a89c88; font-size:16px; line-height:1; padding:2px;">✕</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:14px; margin-top:16px; padding:14px; background:{{selected.bandBg}}; border-radius:10px;">
+          <div class="heading" style="font-size:34px; font-weight:600; color:{{selected.bandText}};">{{selected.score}}</div>
+          <div>
+            <div style="font-size:13.5px; font-weight:600; color:{{selected.bandText}};">{{selected.label}}</div>
+            <div style="font-size:11.5px; color:{{selected.bandText}}; opacity:0.75;">tonight, sunset {{selected.sunsetTime}}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <div style="font-size:12px; color:#8a8071; margin-bottom:8px;">Best day this week: <span style="color:#2a2622; font-weight:600;">{{selected.bestDay}} ({{selected.bestScore}})</span></div>
+          <div style="display:flex; gap:5px; align-items:flex-end; height:44px;">
+            <sc-for list="{{selected.week}}" as="day" hint-placeholder-count="7">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="width:100%; height:{{day.barH}}px; background:{{day.barColor}}; border-radius:3px 3px 1px 1px;"></div>
+                <div style="font-size:9.5px; color:#a89c88;">{{day.label}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Legend -->
+    <div style="position:absolute; left:24px; bottom:24px; background:#fffdf9; border:1px solid #ece2d2; border-radius:12px; padding:14px 16px; box-shadow:0 6px 18px rgba(40,28,12,0.12);">
+      <div style="font-size:11px; color:#8a8071; margin-bottom:8px; letter-spacing:0.3px;">TONIGHT'S SCORE</div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <sc-for list="{{legend}}" as="item" hint-placeholder-count="5">
+          <div style="display:flex; align-items:center; gap:5px;">
+            <div style="width:11px; height:11px; border-radius:50%; background:{{item.color}};"></div>
+            <span style="font-size:11px; color:#5c5348;">{{item.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const scale = [
+      { min: 0,  color: '#8fa3a8', text: '#3d4a4d', bg: '#e7edee', label: 'Poor' },
+      { min: 18, color: '#7ea88c', text: '#33513f', bg: '#e5efe8', label: 'Mediocre' },
+      { min: 35, color: '#d9a441', text: '#5c4315', bg: '#f7ecd6', label: 'Decent' },
+      { min: 55, color: '#e07a2e', text: '#5c3210', bg: '#faead9', label: 'Very good' },
+      { min: 75, color: '#c8385f', text: '#5c1229', bg: '#f7dfe4', label: 'Exceptional' },
+    ];
+    const tierFor = (s) => [...scale].reverse().find((t) => s >= t.min);
+
+    const rawSpots = [
+      { name: 'Cape Kiwanda',      region: 'Oregon Coast',      x: 200, y: 260, score: 82 },
+      { name: 'Ecola State Park',  region: 'Oregon Coast',      x: 235, y: 150, score: 58 },
+      { name: 'Discovery Park',    region: 'Seattle, WA',       x: 640, y: 190, score: 41 },
+      { name: 'Kerry Park',        region: 'Seattle, WA',       x: 690, y: 210, score: 64 },
+      { name: 'Mt. Tabor',         region: 'Portland, OR',      x: 470, y: 360, score: 27 },
+      { name: "Rowena Crest",      region: 'Columbia Gorge',    x: 720, y: 340, score: 91 },
+      { name: 'Deception Pass',    region: 'Whidbey Island, WA',x: 560, y: 90,  score: 73 },
+      { name: 'Cannon Beach',      region: 'Oregon Coast',      x: 210, y: 210, score: 35 },
+      { name: 'Multnomah Falls',   region: 'Columbia Gorge',    x: 640, y: 330, score: 19 },
+    ];
+
+    const spots = rawSpots.map((s) => {
+      const tier = tierFor(s.score);
+      const size = 30 + Math.round((s.score / 100) * 16);
+      return {
+        ...s,
+        color: tier.color,
+        textColor: '#fff8ef',
+        size,
+        z: 10 + s.score,
+        select: () => this.setState({ selectedId: s.name }),
+      };
+    });
+
+    const selectedSpot = rawSpots.find((s) => s.name === (this.state.selectedId ?? 'Rowena Crest'));
+    const tier = tierFor(selectedSpot.score);
+    const weekRaw = [61, 74, 55, 91, 68, 40, 52];
+    const dayLabels = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+    const bestIdx = weekRaw.indexOf(Math.max(...weekRaw));
+    const week = weekRaw.map((v, i) => ({
+      label: dayLabels[i],
+      barH: 8 + Math.round((v / 100) * 36),
+      barColor: i === bestIdx ? tierFor(v).color : '#e6ddd0',
+    }));
+
+    const spotObj = spots.find((s) => s.name === selectedSpot.name);
+    const selected = {
+      name: selectedSpot.name,
+      region: selectedSpot.region,
+      score: selectedSpot.score,
+      label: tier.label,
+      bandBg: tier.bg,
+      bandText: tier.text,
+      sunsetTime: '7:42 PM',
+      bestDay: dayLabels[bestIdx],
+      bestScore: weekRaw[bestIdx],
+      week,
+      cardX: Math.min(spotObj.x + 26, 1440 - 72 - 300),
+      cardY: Math.max(spotObj.y - 260, 16),
+      close: () => this.setState({ selectedId: null }),
+    };
+
+    return {
+      spots,
+      selected: this.state.selectedId === null ? null : selected,
+      legend: scale.map((t) => ({ color: t.color, label: t.label })),
+    };
+  }
+}
+</script>
+</body>
+</html>
