@@ -1,5 +1,12 @@
 # Sunset rating label analysis — first pass
 
+> **Note (2026-10-26):** written when the code was JavaScript. It has since been
+> migrated to Python (NEXT-STEPS C1). File mapping: `sunset_score.py`/`.js` →
+> `src/sunset/scoring.py` (+ `models.py`); `pinpoint.js` → `pinpoint.py`, `cli.py`,
+> `sources/openmeteo.py`, `geo.py`; `terrain.js` → `terrain.py`; `label_data.js` →
+> `study/ratings/ratings.json`; `label_analysis.js` → `label_analysis.py`.
+> See ARCHITECTURE.md. The text below is unchanged.
+
 Source data: `study/ratings/photo-ratings.md` (8 photos x 2 raters = 16 reviews),
 hand-tagged into 11 signed labels (+1 praised / -1 criticized / 0 not mentioned)
 across three tiers. See `study/analysis/label_data.js` for the full tagged dataset and
