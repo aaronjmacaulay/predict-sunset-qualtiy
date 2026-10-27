@@ -183,7 +183,8 @@ responses recorded on 2026-10-26, and the tests replay them. Some tests
 compare the whole output with a saved copy, so if you *deliberately* change
 the scoring or the output format, those tests will fail. That's expected:
 update the saved copy in `tests/fixtures/` and say why in the commit
-message (see `tests/fixtures/README.md`).
+message (see `tests/fixtures/README.md`). To record a new place or date as a
+fixture: `uv run python tests/record_fixture.py <name> <lat> <lon> <date>`.
 
 ### Live score: `uv run sunset score <lat> <lon> [YYYY-MM-DD]`
 
@@ -191,8 +192,10 @@ The actual forecaster. For a place and date it fetches the sunset time,
 works out the compass direction the sun sets in, checks low cloud 50, 150
 and 250 km in that direction, gets cloud, humidity, visibility and air
 quality at your spot, scans the terrain toward the sunset, and prints every
-input and the score. The date defaults to today *at that location*. It
-works for past and future dates the forecast covers.
+input and the score. The date defaults to today *at that location*. Future
+dates work up to about two weeks ahead. Past dates work too: the last ~3
+months come from the normal forecast API, and older dates automatically
+from Open-Meteo's archive of past forecasts.
 
 ```bash
 uv run sunset score 49.2827 -123.1207              # Vancouver, today

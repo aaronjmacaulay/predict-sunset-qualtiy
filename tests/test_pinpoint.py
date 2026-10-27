@@ -7,17 +7,18 @@ from sunset.pinpoint import pinpoint
 from sunset.sources.openmeteo import OpenMeteo
 
 CASES = [
-    ("vancouver", 49.2827, -123.1207, 6),
-    ("squamish", 49.7016, -123.1558, 0),
+    ("vancouver", 49.2827, -123.1207, "2026-10-26", 6),   # recorded from the JS version
+    ("squamish", 49.7016, -123.1558, "2026-10-26", 0),    # recorded from the JS version
+    ("vancouver", 49.2827, -123.1207, "2026-07-22", 4),   # historical archive (Python)
 ]
 
 
-@pytest.mark.parametrize("place,lat,lon,score", CASES)
-def test_pinpoint_reproduces_the_recorded_js_run_exactly(fixtures_dir, place, lat, lon, score):
-    source = OpenMeteo(replay_fetch(f"openmeteo_{place}_2026-10-26.json"))
-    p = pinpoint(lat, lon, "2026-10-26", source)
+@pytest.mark.parametrize("place,lat,lon,date,score", CASES)
+def test_pinpoint_reproduces_recorded_runs_exactly(fixtures_dir, place, lat, lon, date, score):
+    source = OpenMeteo(replay_fetch(f"openmeteo_{place}_{date}.json"))
+    p = pinpoint(lat, lon, date, source)
     assert p.result.score == score
-    expected = (fixtures_dir / f"expected_pinpoint_{place}_2026-10-26.txt").read_text()
+    expected = (fixtures_dir / f"expected_pinpoint_{place}_{date}.txt").read_text()
     assert format_pinpoint(p) + "\n" == expected
 
 

@@ -18,6 +18,7 @@ uv run python study/analysis/label_analysis.py # correlation + ridge over rating
 ```
 
 Open-Meteo rate-limits bursts (HTTP 429). Prefer tests over repeated live runs.
+Record a new fixture: `uv run python tests/record_fixture.py <name> <lat> <lon> <date>`.
 
 ## Rules that matter
 

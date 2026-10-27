@@ -5,6 +5,8 @@ from urllib.parse import parse_qsl, urlsplit
 
 import pytest
 
+from sunset.sources.openmeteo import ApiError
+
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
@@ -34,6 +36,8 @@ def replay_fetch(name: str, overrides=None):
                 continue
             if all(_coords_match(params[k], r_params[k]) if k in ("latitude", "longitude")
                    else params[k] == r_params[k] for k in params):
+                if "_error" in body:
+                    raise ApiError(url, body["_error"]["status"], body["_error"]["reason"])
                 body = copy.deepcopy(body)
                 if overrides:
                     overrides(url, body)

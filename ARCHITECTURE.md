@@ -121,7 +121,8 @@ so an interface can explain the score.
 
 | Service | Used for | Key? |
 |---|---|---|
-| Open-Meteo Forecast API | sunset time, cloud, humidity, visibility, boundary layer | no |
+| Open-Meteo Forecast API | sunset time, cloud, humidity, visibility, boundary layer (about the last 3 months to ~2 weeks ahead) | no |
+| Open-Meteo Historical Forecast API | the same, for older dates (archive of past forecasts); used automatically when the forecast API says a date is out of range | no |
 | Open-Meteo Air Quality API | AOD, PM2.5 | no |
 | Open-Meteo Elevation API | terrain profile (Copernicus DEM, ~90 m) | no |
 

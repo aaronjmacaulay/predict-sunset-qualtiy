@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 from conftest import replay_fetch
-from sunset.sources.openmeteo import OpenMeteo, _nearest_hour_index
+from sunset.sources.openmeteo import HISTORICAL_URL, WEATHER_URL, ApiError, OpenMeteo, _nearest_hour_index
 
 VAN = (49.2827, -123.1207)
 
@@ -41,3 +41,27 @@ def test_missing_sunset_is_an_error():
     source = OpenMeteo(replay_fetch("openmeteo_vancouver_2026-10-26.json", drop_sunset))
     with pytest.raises(RuntimeError, match="No sunset time"):
         source.sunset(*VAN, "2026-10-26")
+
+
+def test_old_dates_fall_back_to_the_historical_forecast_api():
+    urls = []
+    replay = replay_fetch("openmeteo_vancouver_2026-07-22.json")
+
+    def fetch(url):
+        urls.append(url)
+        return replay(url)
+
+    source = OpenMeteo(fetch)
+    s = source.sunset(*VAN, "2026-07-22")
+    source.spot_weather(*VAN, "2026-07-22", s.local_iso)
+    assert s.local_iso == "2026-07-22T21:05"
+    assert urls[0].startswith(WEATHER_URL)          # tried the forecast API once...
+    assert all(u.startswith(HISTORICAL_URL) for u in urls[1:])   # ...then stayed historical
+    assert len(urls) == 3
+
+
+def test_other_api_errors_are_not_swallowed():
+    def fail(url):
+        raise ApiError(url, 500, "server error")
+    with pytest.raises(ApiError, match="500"):
+        OpenMeteo(fail).sunset(*VAN, "2026-10-26")
