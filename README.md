@@ -17,6 +17,8 @@ sunset". If that assumption is wrong, the target variable changes shape and
 the scoring architecture has to change with it. See
 [risk-poc.md](research/risk-poc.md).
 
+TODO a good and bad example sunset.
+
 ---
 
 ## Status
