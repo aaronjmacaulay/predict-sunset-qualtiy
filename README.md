@@ -125,20 +125,123 @@ design/            UI mockups (not wired to the code yet)
 
 ## Running things
 
-Needs [uv](https://docs.astral.sh/uv/). `uv sync` once to create the
-environment (the predictor itself has no third-party dependencies; pytest
-and numpy are for tests and the study).
+Quick reference (details for each below):
 
 ```bash
-uv run sunset score <lat> <lon> [YYYY-MM-DD]   # live score (Tier 1+2), needs network
-uv run sunset scenarios                        # traced worked example + the 9 scenarios
-uv run sunset terrain <lat> <lon> <azimuth>    # horizon scan on its own
-uv run pytest                                  # tests (offline)
-uv run python study/analysis/label_analysis.py # rating-label correlation + ridge
+uv sync                                        # one-time setup
+uv run pytest                                  # run the tests (offline)
+uv run sunset score <lat> <lon> [YYYY-MM-DD]   # live sunset score, needs internet
+uv run sunset scenarios                        # the 9 example skies, no internet
+uv run python study/analysis/label_analysis.py # the rating-study analysis
+uv run sunset terrain <lat> <lon> <azimuth>    # horizon scan only (debugging)
 ```
 
-Date defaults to today in the location's own timezone, not UTC. Works for
-past and future dates via Open-Meteo's forecast API.
+### uv: the project's Python manager
+
+[uv](https://docs.astral.sh/uv/) installs the right Python and the
+project's libraries into a private folder (`.venv/`, not committed), so the
+project never depends on what happens to be installed on your machine.
+
+Install it once per computer: `brew install uv` on a Mac, or see the uv
+website for other systems.
+
+- **`uv sync`** reads `pyproject.toml` (what the project needs) and
+  `uv.lock` (the exact versions) and creates or updates `.venv/`. Run it
+  after cloning, and again after pulling changes that touch either file.
+- **`uv run <command>`** runs a command inside that environment. You never
+  need to "activate" anything; just put `uv run` in front.
+- **Adding a library:** `uv add --group analysis pandas` (for the rating
+  study) or `uv add --group dev <name>` (for tools). Commit the changed
+  `pyproject.toml` and `uv.lock` together. Keep the predictor in
+  `src/sunset/` free of third-party libraries (see ARCHITECTURE.md).
+
+### Tests: `uv run pytest`
+
+[pytest](https://docs.pytest.org/) finds every `tests/test_*.py` file and
+runs each function whose name starts with `test_`. A test is a small
+program that checks one thing, such as "the Post-frontal classic scenario
+still scores 90". The tests run offline in under a second, so run them after
+every change. All passing means you didn't break anything they check:
+
+```
+..............................................                [100%]
+46 passed in 0.05s
+```
+
+Each dot is a passing test. A failure prints `F` and then shows the test,
+the line that failed, and the expected vs actual values. Useful variations:
+
+```bash
+uv run pytest -v                      # one line per test, with names
+uv run pytest tests/test_scoring.py   # one file only
+uv run pytest -k terrain              # only tests with "terrain" in the name
+uv run pytest -x                      # stop at the first failure
+```
+
+The tests don't use the internet. `tests/fixtures/` holds real Open-Meteo
+responses recorded on 2026-10-26, and the tests replay them. Some tests
+compare the whole output with a saved copy, so if you *deliberately* change
+the scoring or the output format, those tests will fail. That's expected:
+update the saved copy in `tests/fixtures/` and say why in the commit
+message (see `tests/fixtures/README.md`).
+
+### Live score: `uv run sunset score <lat> <lon> [YYYY-MM-DD]`
+
+The actual forecaster. For a place and date it fetches the sunset time,
+works out the compass direction the sun sets in, checks low cloud 50, 150
+and 250 km in that direction, gets cloud, humidity, visibility and air
+quality at your spot, scans the terrain toward the sunset, and prints every
+input and the score. The date defaults to today *at that location*. It
+works for past and future dates the forecast covers.
+
+```bash
+uv run sunset score 49.2827 -123.1207              # Vancouver, today
+uv run sunset score 49.7016 -123.1558 2026-10-26   # Squamish, a given date
+```
+
+Shortened output:
+
+```
+Sunset time: 2026-10-26T18:00 (America/Vancouver)
+Solar azimuth at sunset: 251.1 deg
+Upwind low cloud samples:
+  50km @ 251deg -> (49.135, -123.771): 47%
+  ...
+terrain_block_deg (max across bearings): 0.46
+
+  TERM 1  light path gate           = 0.639
+  ...
+  0.639 x 0.248 x 0.311 x 1.130 = 0.0556
+  SCORE = 6/100   (poor)
+```
+
+Needs the internet. Open-Meteo is free but rate-limits bursts: if you get
+`HTTP 429`, wait a minute.
+
+### Example skies: `uv run sunset scenarios`
+
+No internet needed. Scores 9 hand-made example skies ("Post-frontal
+classic", "Marine layer", "Wildfire smoke", ...) and works through the first
+one term by term. The quickest way to see how the formula behaves. "Pair A"
+and "Pair B" have identical skies overhead but differ in cloud 120 km to the
+west (72 vs 26), which is why the tool samples upwind. The scenarios live in
+`src/sunset/scoring.py`.
+
+### Rating study: `uv run python study/analysis/label_analysis.py`
+
+Not the forecaster: this analyses the human ratings. It reads
+`study/ratings/ratings.json` (each review's score plus its likes and dislikes
+tagged as labels) and prints which labels track the scores, overall and per
+rater, and how well the ratings can be predicted with and without
+photo-specific labels. `study/analysis/report.md` is the write-up of this
+output. After adding ratings to `ratings.json`, rerun it.
+
+### Horizon only: `uv run sunset terrain <lat> <lon> <azimuth>`
+
+For debugging the terrain part on its own: how many degrees hills or
+mountains block the view toward a compass bearing (`<azimuth>`, e.g. 251 for
+a west-south-west autumn sunset in Vancouver). Prints the elevation and angle
+of each sampled point. Needs the internet.
 
 ---
 
