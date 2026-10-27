@@ -1,10 +1,7 @@
 """
-sunset_score.py — a worked sunset-quality scoring model.
+scoring.py — the sunset-quality scoring model: Observation -> ScoreResult.
 
-FROZEN REFERENCE COPY as of 2026-09-04. sunset_score.js is the actively
-maintained implementation (used by pinpoint.js and terrain.js) - edit that
-one going forward, not this file. Kept here as the original documented
-formula this project started from.
+Pure computation: no I/O, no printing (formatting lives in cli.py).
 
 Structure is MULTIPLICATIVE, not a weighted average. That is the key modelling
 decision: a sunset is a chain of necessary conditions, and any single broken
@@ -13,10 +10,16 @@ lighting, (3) travel through clean enough air, (4) get its colour saturated by
 the right amount of aerosol. Averaging would let a perfect cirrus deck paper
 over a solid marine layer that is physically blocking the sun.
 
-Inputs map 1:1 onto the free Open-Meteo endpoints (see README section at bottom).
+Inputs are the Observation fields; see ARCHITECTURE.md, Data contracts.
+
+The constants below are physically reasoned, NOT fitted to ratings. Don't tune
+them without rating data (NEXT-STEPS F4), and update the regression test in
+tests/test_scoring.py in the same commit if you do.
 """
 
 import math
+
+from sunset.models import Observation, ScoreResult
 
 # ----------------------------------------------------------------------------
 # helpers
@@ -96,35 +99,22 @@ def aerosol(aod, pm25):
 # top level
 # ----------------------------------------------------------------------------
 
-def score(o, trace=False):
-    gate, path, terr = light_path_gate(o["cloud_low_upwind"], o["terrain_block_deg"])
-    canv, c_hi, c_mid = canvas(o["cloud_high"], o["cloud_mid"])
-    clar, rh_f, vis_f, pbl_f = clarity(o["rh_2m"], o["visibility_m"], o["pbl_height_m"])
-    aer, boost, overload, pm_pen = aerosol(o["aod"], o["pm25"])
+def score(o: Observation) -> ScoreResult:
+    gate, path, terr = light_path_gate(o.cloud_low_upwind, o.terrain_block_deg)
+    canv, c_hi, c_mid = canvas(o.cloud_high, o.cloud_mid)
+    clar, rh_f, vis_f, pbl_f = clarity(o.rh_2m, o.visibility_m, o.pbl_height_m)
+    aer, boost, overload, pm_pen = aerosol(o.aod, o.pm25)
 
     raw = gate * canv * clar * aer
     final = clamp(round(raw * 100), 0, 100)
 
-    if trace:
-        print(f"  TERM 1  light path gate           = {gate:.3f}")
-        print(f"            upwind low cloud {o['cloud_low_upwind']:>5.0f}%  -> path    {path:.3f}")
-        print(f"            terrain block   {o['terrain_block_deg']:>5.1f}deg -> terrain {terr:.3f}")
-        print(f"  TERM 2  canvas                    = {canv:.3f}")
-        print(f"            high cloud      {o['cloud_high']:>5.0f}%  -> bell    {c_hi:.3f}  (x0.70)")
-        print(f"            mid cloud       {o['cloud_mid']:>5.0f}%  -> bell    {c_mid:.3f}  (x0.30)")
-        print(f"  TERM 3  clarity                   = {clar:.3f}")
-        print(f"            RH              {o['rh_2m']:>5.0f}%  -> {rh_f:.3f} ^0.5")
-        print(f"            visibility   {o['visibility_m']:>8.0f}m  -> {vis_f:.3f} ^0.6")
-        print(f"            PBL height   {o['pbl_height_m']:>8.0f}m  -> {pbl_f:.3f}")
-        print(f"  TERM 4  aerosol multiplier        = {aer:.3f}")
-        print(f"            AOD            {o['aod']:>6.2f}   -> boost   {boost:.3f}")
-        print(f"            overload factor           {overload:.3f}")
-        print(f"            PM2.5          {o['pm25']:>6.1f}   -> {pm_pen:.3f}")
-        print(f"  ----------------------------------------------------")
-        print(f"  {gate:.3f} x {canv:.3f} x {clar:.3f} x {aer:.3f} = {raw:.4f}")
-        print(f"  SCORE = {final}/100   ({label(final)})")
-
-    return final
+    return ScoreResult(
+        score=final, label=label(final), raw=raw,
+        gate=gate, path=path, terrain=terr,
+        canvas=canv, high=c_hi, mid=c_mid,
+        clarity=clar, rh_f=rh_f, vis_f=vis_f, pbl_f=pbl_f,
+        aerosol=aer, boost=boost, overload=overload, pm_pen=pm_pen,
+    )
 
 
 def label(s):
@@ -140,66 +130,50 @@ def label(s):
 # ----------------------------------------------------------------------------
 
 SCENARIOS = {
-    "Post-frontal classic": dict(
+    "Post-frontal classic": Observation(
         cloud_high=60, cloud_mid=25, cloud_low_upwind=10, rh_2m=48,
         visibility_m=24000, pbl_height_m=1400, aod=0.16, pm25=7,
         terrain_block_deg=0.5),
 
-    "Marine layer (coastal summer)": dict(
+    "Marine layer (coastal summer)": Observation(
         cloud_high=55, cloud_mid=20, cloud_low_upwind=85, rh_2m=88,
         visibility_m=9000, pbl_height_m=350, aod=0.10, pm25=6,
         terrain_block_deg=0.5),
 
-    "Wildfire smoke, moderate": dict(
+    "Wildfire smoke, moderate": Observation(
         cloud_high=35, cloud_mid=15, cloud_low_upwind=5, rh_2m=40,
         visibility_m=14000, pbl_height_m=1600, aod=0.42, pm25=38,
         terrain_block_deg=0.5),
 
-    "Wildfire smoke, heavy": dict(
+    "Wildfire smoke, heavy": Observation(
         cloud_high=30, cloud_mid=10, cloud_low_upwind=5, rh_2m=38,
         visibility_m=4000, pbl_height_m=1500, aod=1.30, pm25=145,
         terrain_block_deg=0.5),
 
     # --- contrast pair: IDENTICAL sky overhead, only upwind low cloud differs.
     # This is the whole argument for sampling along the solar azimuth.
-    "Pair A: clear to the west": dict(
+    "Pair A: clear to the west": Observation(
         cloud_high=55, cloud_mid=20, cloud_low_upwind=5, rh_2m=55,
         visibility_m=20000, pbl_height_m=1200, aod=0.18, pm25=10,
         terrain_block_deg=0.5),
 
-    "Pair B: same sky, deck 120km west": dict(
+    "Pair B: same sky, deck 120km west": Observation(
         cloud_high=55, cloud_mid=20, cloud_low_upwind=75, rh_2m=55,
         visibility_m=20000, pbl_height_m=1200, aod=0.18, pm25=10,
         terrain_block_deg=0.5),
 
-    "Bluebird clear sky": dict(
+    "Bluebird clear sky": Observation(
         cloud_high=0, cloud_mid=0, cloud_low_upwind=0, rh_2m=45,
         visibility_m=24000, pbl_height_m=1800, aod=0.09, pm25=4,
         terrain_block_deg=0.5),
 
-    "Solid overcast": dict(
+    "Solid overcast": Observation(
         cloud_high=100, cloud_mid=95, cloud_low_upwind=95, rh_2m=92,
         visibility_m=7000, pbl_height_m=500, aod=0.12, pm25=9,
         terrain_block_deg=0.5),
 
-    "Ideal sky, but ridge to the west": dict(
+    "Ideal sky, but ridge to the west": Observation(
         cloud_high=60, cloud_mid=25, cloud_low_upwind=10, rh_2m=48,
         visibility_m=24000, pbl_height_m=1400, aod=0.16, pm25=7,
         terrain_block_deg=6.0),
 }
-
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("WORKED EXAMPLE — 'Post-frontal classic'")
-    print("=" * 60)
-    score(SCENARIOS["Post-frontal classic"], trace=True)
-
-    print()
-    print("=" * 60)
-    print("ALL SCENARIOS")
-    print("=" * 60)
-    for name, obs in SCENARIOS.items():
-        s = score(obs)
-        bar = "#" * int(s / 2.5)
-        print(f"{name:<34} {s:>3}/100  {bar} {label(s)}")

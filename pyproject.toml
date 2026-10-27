@@ -1,0 +1,26 @@
+[project]
+name = "sunset"
+version = "0.1.0"
+description = "Hyperlocal sunset quality forecasting and rating study"
+readme = "README.md"
+requires-python = ">=3.11"
+# The predictor is stdlib-only by design (see ARCHITECTURE.md, Decisions).
+dependencies = []
+
+[project.scripts]
+sunset = "sunset.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+# Rating-study analysis only; never imported by the predictor.
+analysis = ["numpy>=2"]
+
+[tool.uv]
+default-groups = ["dev", "analysis"]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.13"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
