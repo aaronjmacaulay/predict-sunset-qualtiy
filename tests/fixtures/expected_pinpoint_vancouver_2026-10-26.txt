@@ -1,0 +1,36 @@
+Pinpoint sunset score — (49.2827, -123.1207) on 2026-10-26
+============================================================
+Sunset time: 2026-10-26T18:00 (America/Vancouver)
+Solar azimuth at sunset: 251.1 deg
+Evaluated hour (nearest bucket): 2026-10-26T18:00
+Upwind low cloud samples:
+  50km @ 251deg -> (49.135, -123.771): 47%
+  150km @ 251deg -> (48.830, -125.060): 39%
+  250km @ 251deg -> (48.510, -126.333): 17%
+Worst-case upwind low cloud: 47%
+Observer elevation: 40m
+Terrain horizon scan:
+  236.1deg -> block 0.25deg
+  243.6deg -> block 0.38deg
+  251.1deg -> block 0.46deg
+  258.6deg -> block 0.41deg
+  266.1deg -> block 0.28deg
+terrain_block_deg (max across bearings): 0.46
+
+  TERM 1  light path gate           = 0.639
+            upwind low cloud    47%  -> path    0.678
+            terrain block     0.5deg -> terrain 0.943
+  TERM 2  canvas                    = 0.248
+            high cloud          0%  -> bell    0.145  (x0.70)
+            mid cloud           0%  -> bell    0.487  (x0.30)
+  TERM 3  clarity                   = 0.311
+            RH                 84%  -> 0.291 ^0.5
+            visibility      17500m  -> 0.729 ^0.6
+            PBL height        650m  -> 0.696
+  TERM 4  aerosol multiplier        = 1.130
+            AOD              0.10   -> boost   1.130
+            overload factor           1.000
+            PM2.5            11.1   -> 1.000
+  ----------------------------------------------------
+  0.639 x 0.248 x 0.311 x 1.130 = 0.0556
+  SCORE = 6/100   (poor)

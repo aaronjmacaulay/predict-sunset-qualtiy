@@ -1,0 +1,108 @@
+
+=== Correlation pass: pooled (Sandy + Aaron) (n=16) ===
+label                                  r  mentions
+foreground_quality                 0.595  6
+focus_sharpness                    0.590  4
+sun_obstruction_by_foreground      0.496  2
+cloud_reflection                   0.467  5
+sun_timing                        -0.447  3
+water_reflection                   0.234  3
+gradient_transition               -0.188  4
+cloud_amount                       0.183  9
+color_vibrancy                     0.116  13
+cloud_type                        -0.072  7
+obstructions                      -0.020  5
+sun_blocking_clouds                0.000  0
+authenticity                       0.000  0
+
+=== Correlation pass: Sandy only (n=8) ===
+label                                  r  mentions
+focus_sharpness                    0.796  4
+foreground_quality                 0.738  4
+cloud_reflection                   0.579  2
+sun_obstruction_by_foreground      0.574  1
+sun_timing                        -0.520  1
+color_vibrancy                    -0.280  5
+gradient_transition                0.209  2
+water_reflection                   0.137  1
+cloud_type                         0.131  3
+obstructions                       0.072  4
+cloud_amount                       0.045  3
+sun_blocking_clouds                0.000  0
+authenticity                       0.000  0
+
+=== Correlation pass: Aaron only (n=8) ===
+label                                  r  mentions
+water_reflection                   0.581  2
+gradient_transition               -0.464  2
+obstructions                      -0.439  1
+sun_obstruction_by_foreground      0.439  1
+color_vibrancy                     0.402  8
+sun_timing                        -0.313  2
+foreground_quality                 0.313  2
+cloud_amount                       0.268  6
+cloud_reflection                   0.260  3
+cloud_type                        -0.109  4
+sun_blocking_clouds                0.000  0
+focus_sharpness                    0.000  0
+authenticity                       0.000  0
+
+=== Ridge regression: all labels, pooled (n=16, alpha=2) ===
+label                               coef
+foreground_quality                 0.675
+water_reflection                   0.666
+cloud_amount                       0.527
+focus_sharpness                    0.516
+sun_obstruction_by_foreground      0.512
+color_vibrancy                     0.380
+cloud_reflection                   0.311
+cloud_type                         0.194
+gradient_transition               -0.175
+obstructions                       0.101
+sun_timing                         0.008
+sun_blocking_clouds                0.000
+authenticity                       0.000
+Leave-one-out R^2 = 0.538   RMSE = 1.16 (score scale 1-10)
+
+=== Ridge regression: sky_weather + geometry labels only, pooled (n=16, alpha=2) ===
+label                               coef
+cloud_reflection                   0.852
+sun_timing                        -0.811
+water_reflection                   0.646
+color_vibrancy                     0.399
+cloud_amount                       0.364
+cloud_type                         0.032
+gradient_transition               -0.025
+sun_blocking_clouds                0.000
+Leave-one-out R^2 = 0.214   RMSE = 1.52 (score scale 1-10)
+
+=== Ridge regression: all labels + rater_id, pooled (n=16, alpha=2) ===
+label                               coef
+foreground_quality                 0.697
+water_reflection                   0.654
+focus_sharpness                    0.534
+cloud_amount                       0.508
+sun_obstruction_by_foreground      0.491
+color_vibrancy                     0.374
+cloud_reflection                   0.323
+gradient_transition               -0.189
+cloud_type                         0.178
+obstructions                       0.125
+rater_id                          -0.095
+sun_timing                        -0.009
+sun_blocking_clouds                0.000
+authenticity                       0.000
+Leave-one-out R^2 = 0.445   RMSE = 1.28 (score scale 1-10)
+
+=== Ridge regression: sky_weather + geometry labels + rater_id, pooled (n=16, alpha=2) ===
+label                               coef
+cloud_reflection                   0.849
+sun_timing                        -0.808
+water_reflection                   0.649
+color_vibrancy                     0.400
+cloud_amount                       0.365
+cloud_type                         0.034
+gradient_transition               -0.024
+rater_id                           0.011
+sun_blocking_clouds                0.000
+Leave-one-out R^2 = 0.080   RMSE = 1.64 (score scale 1-10)

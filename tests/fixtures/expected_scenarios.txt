@@ -1,0 +1,33 @@
+============================================================
+WORKED EXAMPLE — 'Post-frontal classic'
+============================================================
+  TERM 1  light path gate           = 0.908
+            upwind low cloud    10%  -> path    0.968
+            terrain block     0.5deg -> terrain 0.938
+  TERM 2  canvas                    = 0.983
+            high cloud         60%  -> bell    0.984  (x0.70)
+            mid cloud          25%  -> bell    0.980  (x0.30)
+  TERM 3  clarity                   = 0.841
+            RH                 48%  -> 0.945 ^0.5
+            visibility      24000m  -> 1.000 ^0.6
+            PBL height       1400m  -> 0.865
+  TERM 4  aerosol multiplier        = 1.195
+            AOD              0.16   -> boost   1.195
+            overload factor           1.000
+            PM2.5             7.0   -> 1.000
+  ----------------------------------------------------
+  0.908 x 0.983 x 0.841 x 1.195 = 0.8971
+  SCORE = 90/100   (exceptional)
+
+============================================================
+ALL SCENARIOS
+============================================================
+Post-frontal classic                90/100  #################################### exceptional
+Marine layer (coastal summer)        4/100  # poor
+Wildfire smoke, moderate            30/100  ############ mediocre
+Wildfire smoke, heavy                3/100  # poor
+Pair A: clear to the west           72/100  ############################ very good
+Pair B: same sky, deck 120km west   26/100  ########## mediocre
+Bluebird clear sky                  25/100  ########## mediocre
+Solid overcast                       0/100   poor
+Ideal sky, but ridge to the west    24/100  ######### mediocre
