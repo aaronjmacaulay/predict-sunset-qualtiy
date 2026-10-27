@@ -12,7 +12,7 @@ how do you usuggest we structure that in the poc to do first
 ### Why this is the risk to resolve first
 
 The scoring model already built (`score = gate × canvas × clarity × aerosol` in
-[sunset_score.py](../src/sunset/sunset_score.py)) implicitly assumes a single, universal
+[scoring.py](../src/sunset/scoring.py)) implicitly assumes a single, universal
 "good sunset" ground truth — one number, same meaning for everyone. Every
 downstream POC tier in [research.md](research.md) (pinpoint scoring, terrain,
 live satellite confirmation) inherits that assumption. If it's wrong, we don't

@@ -1,5 +1,12 @@
 # Sunset rating labels: taxonomy, tagging methodology, and findings so far
 
+> **Note (2026-10-26):** written when the code was JavaScript. It has since been
+> migrated to Python (NEXT-STEPS C1). File mapping: `sunset_score.py`/`.js` →
+> `src/sunset/scoring.py` (+ `models.py`); `pinpoint.js` → `pinpoint.py`, `cli.py`,
+> `sources/openmeteo.py`, `geo.py`; `terrain.js` → `terrain.py`; `label_data.js` →
+> `study/ratings/ratings.json`; `label_analysis.js` → `label_analysis.py`.
+> See ARCHITECTURE.md. The text below is unchanged.
+
 Status: living document, updated as the labeled dataset grows. Last updated
 2026-08-18 after the initial 16-review pass (8 photos x Sandy + Aaron) and the
 cloud-type/color split.

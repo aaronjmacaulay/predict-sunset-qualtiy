@@ -4,10 +4,9 @@ How the codebase is structured: the parts, how they depend on each other, and
 the contracts between them. Not the internal logic of each part (see the
 design specs in `docs/superpowers/specs/` and `research/research.md` for that).
 
-> **Status (Oct 2026):** this describes the **target** structure for the
-> Python package. The code today is still JavaScript in a flatter shape; see
-> [Current state](#current-state-vs-target). The Python migration
-> (NEXT-STEPS C1) builds this structure.
+> **Status (2026-10-26):** implemented. The Python package in `src/sunset/`
+> follows this structure; it replaced an earlier JavaScript version (see
+> [Migration from JavaScript](#migration-from-javascript)).
 
 ---
 
@@ -88,7 +87,7 @@ Consequences:
 
 ## Data contracts
 
-Defined in `models.py` (proposed; dataclasses).
+Defined in `models.py` (frozen dataclasses).
 
 **Observation**: everything the scorer needs, at sunset, for one place.
 
@@ -167,34 +166,36 @@ possibly METAR station data; both belong in `sources/`.
 
 ---
 
-## Current state vs target
+## Migration from JavaScript
 
-Until C1 lands:
+Done 2026-10-26 (NEXT-STEPS C1). Verified by identical output: the 9
+scenario scores, the rating analysis, and live `pinpoint` runs for two places
+(recorded as `tests/fixtures/`).
 
-| Today (JS) | Target (Python) |
+| Was (JS) | Now (Python) |
 |---|---|
-| `src/sunset/sunset_score.js` + `.py` (duplicate) | `scoring.py` (from the `.py`) + `models.py` |
-| `src/sunset/pinpoint.js` | split into `cli.py`, `pinpoint.py`, `geo.py`, `sources/openmeteo.py` |
-| `src/sunset/terrain.js` | `terrain.py` (pure) + elevation fetch in `sources/openmeteo.py` |
-| `tests/sunset_score.test.js` | `tests/test_scoring.py` |
-| `study/analysis/*.js` | Python analysis reading `ratings.json` (NEXT-STEPS B2a) |
+| `sunset_score.js` + `sunset_score.py` (duplicate) | `scoring.py` (from the `.py`) + `models.py` |
+| `pinpoint.js` | `cli.py`, `pinpoint.py`, `geo.py`, `sources/openmeteo.py` |
+| `terrain.js` | `terrain.py` (pure) + elevation fetch in `sources/openmeteo.py` |
+| `sunset_score.test.js` | `tests/test_*.py` (46 tests, offline) |
+| `study/analysis/label_analysis.js` + `label_data.js` | `label_analysis.py` + `study/ratings/ratings.json` |
 
 ---
 
 ## Structural issues
 
 Found in Claude's review of the JS code (Oct 2026). Tracked here; NEXT-STEPS
-refers to them by ID. C1 resolves most of them by building the target
-structure.
+refers to them by ID. The Python migration (C1) resolved S1–S8 and S10.
 
 | ID | Issue | Resolved by | Status |
 |---|---|---|---|
-| S1 | `pinpoint.js` does everything: argument parsing, URL building, HTTP, solar geometry, upwind strategy, orchestration, printing. | Split per the diagram (C1) | open |
-| S2 | `pinpoint.js` runs its CLI at module top level (no "run only when executed directly" guard), so importing it starts network calls. Main reason it has no tests. | `cli.py` separate from `pinpoint.py` (C1) | open |
-| S3 | `terrain` fetches elevations inside the same function as the horizon geometry, so the maths can't be tested offline. | `terrain.py` takes elevations as input; fetch moves to `sources/` (C1) | open |
-| S4 | Open-Meteo URLs hard-coded in several places; no single place for new data sources (Tier 3). | `sources/` layer (C1) | open |
-| S5 | Contracts are implicit: the observation is a plain object, unvalidated. No `null` checks on API responses, so a missing value becomes NaN instead of an error (untested; plausible where air-quality coverage is patchy). | `models.Observation` with validation; fail loudly (C1). Fallback policy is NEXT-STEPS D3. | open |
-| S6 | `score()` computes four terms and sub-factors but returns one integer; the terms only reach the screen via trace printing. | `ScoreResult` (C1); needed for F2 | open |
-| S7 | Printing mixed into computation: trace output inside `score()`, `pinpoint` prints as it goes. | Formatting moves to `cli.py` (C1) | open |
-| S8 | `destinationPoint()` duplicated in `pinpoint` and `terrain` (deliberately, to keep `terrain` standalone). | Shared `geo.py` (C1) | open |
+| S1 | `pinpoint.js` does everything: argument parsing, URL building, HTTP, solar geometry, upwind strategy, orchestration, printing. | Split per the diagram (C1) | resolved |
+| S2 | `pinpoint.js` runs its CLI at module top level (no "run only when executed directly" guard), so importing it starts network calls. Main reason it has no tests. | `cli.py` separate from `pinpoint.py` (C1) | resolved |
+| S3 | `terrain` fetches elevations inside the same function as the horizon geometry, so the maths can't be tested offline. | `terrain.py` takes elevations as input; fetch moves to `sources/` (C1) | resolved |
+| S4 | Open-Meteo URLs hard-coded in several places; no single place for new data sources (Tier 3). | `sources/` layer (C1) | resolved |
+| S5 | Contracts are implicit: the observation is a plain object, unvalidated. No `null` checks on API responses, so a missing value becomes NaN instead of an error (untested; plausible where air-quality coverage is patchy). | `models.Observation` with validation; fail loudly (C1). Fallback policy is NEXT-STEPS D3. | resolved (fails loudly); fallbacks open in D3 |
+| S6 | `score()` computes four terms and sub-factors but returns one integer; the terms only reach the screen via trace printing. | `ScoreResult` (C1); needed for F2 | resolved |
+| S7 | Printing mixed into computation: trace output inside `score()`, `pinpoint` prints as it goes. | Formatting moves to `cli.py` (C1) | resolved |
+| S8 | `destinationPoint()` duplicated in `pinpoint` and `terrain` (deliberately, to keep `terrain` standalone). | Shared `geo.py` (C1) | resolved |
 | S9 | No shared vocabulary between the study's rating labels (`cloud_reflection`, `color_vibrancy`, …) and the scorer's terms (`canvas`, `clarity`, …). Personalisation needs a mapping. | Design work in F2 | open |
+| S10 | Timezone bug: `pinpoint.js` parsed Open-Meteo's local sunset time (no offset) in the *machine's* timezone, so the solar azimuth was only right when the machine shared the location's timezone. On a UTC machine (typical for servers) Vancouver's sunset bearing came out 149° instead of 251°, sampling clouds in the wrong direction. | Python converts with the location's timezone; `geo.solar_azimuth` rejects naive times (C1) | resolved |

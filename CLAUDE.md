@@ -7,15 +7,17 @@ dependency rules, and NEXT-STEPS.md for the plan.
 
 ## Commands
 
-`package.json` has scripts only (`npm test`, `npm run analyze`, `npm run score -- <lat> <lon>`); no dependencies, plain CommonJS on Node (v24 verified).
+Python package managed with uv. `uv sync` once; then:
 
 ```bash
-node --test tests/sunset_score.test.js   # scorer tests (the only test file; passes, 2 tests)
-node src/sunset/pinpoint.js <lat> <lon> [YYYY-MM-DD]   # live score (Tier 1+2), needs network
-node src/sunset/terrain.js ...                # horizon occlusion on its own
-node study/analysis/label_analysis.js        # correlation + ridge passes over rating labels
-python src/sunset/sunset_score.py             # original scorer, worked examples, stdlib only
+uv run pytest                                  # all tests, offline (recorded API fixtures)
+uv run sunset score <lat> <lon> [YYYY-MM-DD]   # live score (Tier 1+2), needs network
+uv run sunset scenarios                        # traced worked example + 9 scenarios
+uv run sunset terrain <lat> <lon> <azimuth>    # horizon scan on its own, needs network
+uv run python study/analysis/label_analysis.py # correlation + ridge over rating labels
 ```
+
+Open-Meteo rate-limits bursts (HTTP 429). Prefer tests over repeated live runs.
 
 ## Rules that matter
 
@@ -25,17 +27,23 @@ python src/sunset/sunset_score.py             # original scorer, worked examples
 - **Cloud is sampled upwind** along the solar azimuth (50–250 km), not overhead.
 - **Constants are uncalibrated.** They are physically reasoned, not fitted.
   Do not tune them until there is enough human rating data (see NEXT-STEPS F).
-- **`src/sunset/sunset_score.py` and `src/sunset/sunset_score.js` must stay in sync by hand.**
-  There is no automated parity check yet. Change both or neither.
+  If you change scoring, update the regression tests and `tests/fixtures/expected_*`
+  in the same commit and say why.
+- **Respect the layers** (ARCHITECTURE.md): only `sources/` does I/O; only
+  `cli.py` prints; `scoring`, `terrain`, `geo` stay pure.
+- **The predictor stays stdlib-only.** numpy etc. only in `study/`.
 - **No API keys, by design.** Open-Meteo and elevation data are keyless; keep
   it that way.
-- Resolve "today" in the observer's local timezone, not UTC (see `pinpoint.js`).
+- **Times:** resolve "today" and the sunset instant in the location's own
+  timezone, never the machine's (see ARCHITECTURE.md S10).
+- **Missing data fails loudly** (`MissingDataError`), never NaN.
 
 ## Data and the rating study
 
-- Ratings live in markdown (`study/ratings/`); labels are hand-copied into
-  `study/analysis/label_data.js`. n=16 reviews so far (2 raters), so results are
-  directional only. Don't present them as conclusions.
+- Labels per review live in `study/ratings/ratings.json` (one review per
+  line); the free-text ratings they were tagged from are the markdown files
+  next to it. n=16 reviews so far (2 raters), so results are directional
+  only. Don't present them as conclusions.
 - Label tiers: `sky_weather` and `geometry` are forecastable;
   `photo_specific` (focus, foreground) is not and must not be fed to a forecaster.
 - `study/photos/` is ~148 MB and `study/scratch/sat_test/` ~46 MB. Don't read or glob
@@ -44,15 +52,13 @@ python src/sunset/sunset_score.py             # original scorer, worked examples
 
 ## Layout
 
-- `src/sunset/` - the predictor (scoring, live Open-Meteo tool, terrain)
-- `tests/` - tests and `fixtures/` (recorded API responses; empty so far)
+- `src/sunset/` - the predictor package (see ARCHITECTURE.md for modules)
+- `tests/` - pytest; `fixtures/` has recorded API responses and expected outputs
 - `study/` - the rating study: `ratings/`, `analysis/`, `photos/`, `scratch/`
 - `research/` - background docs; `docs/superpowers/` - specs (leave there)
 - `design/` - UI mockups; `app/` is reserved for later (not created yet)
 
 ## Status and gaps
 
-- No CI, no deployment, no tests for `pinpoint.js`/`terrain.js`.
+- No CI, no deployment.
 - `design/` mockups are not wired to any code.
-- Planned: migrate to Python with uv (NEXT-STEPS C1) - update commands and
-  paths here when it happens.

@@ -184,7 +184,7 @@ Complete list of the physical inputs that determine sunset quality, grouped roug
 
 ## 8. Scoring Model
 
-Reference implementation: `sunset_score.py` in this folder.
+Reference implementation: `src/sunset/scoring.py`.
 
 ### Structure
 

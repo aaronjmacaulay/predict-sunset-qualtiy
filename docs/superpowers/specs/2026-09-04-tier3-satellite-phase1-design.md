@@ -1,5 +1,12 @@
 # Tier 3, phase 1: satellite imagery — manual/interactive interpretation
 
+> **Note (2026-10-26):** written when the code was JavaScript. It has since been
+> migrated to Python (NEXT-STEPS C1). File mapping: `sunset_score.py`/`.js` →
+> `src/sunset/scoring.py` (+ `models.py`); `pinpoint.js` → `pinpoint.py`, `cli.py`,
+> `sources/openmeteo.py`, `geo.py`; `terrain.js` → `terrain.py`; `label_data.js` →
+> `study/ratings/ratings.json`; `label_analysis.js` → `label_analysis.py`.
+> See ARCHITECTURE.md. The text below is unchanged.
+
 Status: workflow validated end-to-end, not yet automated into a script.
 This is a first slice of "Tier 3 — live satellite/webcam confirmation"
 from research.md §5, using the phase 1 approach (interactive, no ML) that

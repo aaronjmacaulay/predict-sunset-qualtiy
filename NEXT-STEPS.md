@@ -13,7 +13,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done
 
 Suggested order of work:
 
-A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests) → B2b →
+~~A1 → A2 → A3 → B1 (reorganise) → C1 (migrate, with B2a) → C2 (tests)~~ → B2b →
 D as needed → E → F1–F4 (in parallel with
 the above, by the human raters) → G1–G3 → F5–F7 → G4–G5.
 
@@ -50,9 +50,8 @@ Sections:
   *Done when:* a fresh agent session can run tests and the live tool from
   `CLAUDE.md` alone.
 
-- [x] **A3. Add `package.json` with scripts.**
-  `npm test`, `npm run analyze`, `npm run score -- <lat> <lon> [date]`.
-  Still zero dependencies.
+- [x] **A3. Add `package.json` with scripts.** (Superseded by
+  `pyproject.toml` and `uv run` commands in C1.)
   *Done when:* all three scripts run from the repo root.
 
 ## B. Restructure by role
@@ -66,11 +65,11 @@ layout once instead of being written and then moved.
   Directories had lost their write bit, probably from a Windows-to-Unix copy;
   restored with `chmod u+w`.
 
-- [ ] **B2. Structured ratings data**, in two parts:
-  - **B2a (done alongside C1):** replace hand-copied `label_data.js` with one
+- [~] **B2. Structured ratings data**, in two parts:
+  - [x] **B2a (done alongside C1):** replace hand-copied `label_data.js` with one
     `ratings.json`/CSV (photo, rater, score, labels, tags) that the Python
     analysis reads. Avoids writing a JS loader only to rewrite it.
-  - **B2b (after C2):** generate `report.md` from the data.
+  - [ ] **B2b (after C2):** generate `report.md` from the data.
   *Done when:* adding a rating means adding a row, then re-running the
   analysis with `uv run`.
 
@@ -80,7 +79,10 @@ Order: B1 (folders) first, then migrate to Python (C1), then pytest tests
 (C2). The old Python/JS parity test is dropped: once the JS is gone there is
 only one scorer.
 
-- [ ] **C1. Migrate back to Python.**
+- [x] **C1. Migrate back to Python.** Done 2026-10-26. Output verified
+  identical to the JS for the scenarios, the rating analysis and two live
+  `pinpoint` runs; found and fixed a timezone bug in the JS (ARCHITECTURE.md
+  S10). Original task description kept below.
   The JS port only existed because the original Windows machine had no
   working Python (Tier 1 spec §2); Python is the team's stronger language and
   suits a backend/scheduled-job and the analysis/ML work. Port `pinpoint.js`,
@@ -107,8 +109,9 @@ only one scorer.
   forecasts update). Keep Python's rounding (`round(2.5)` = 2; JS gives 3).
   *Done when:* every command in CLAUDE.md runs in Python and no `.js` remains.
 
-- [ ] **C2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
-  responses in `fixtures/` (currently empty).
+- [x] **C2. Tests for `pinpoint` and `terrain`** (pytest), using recorded API
+  responses in `tests/fixtures/`. Done: 46 offline tests, including exact
+  replay of two recorded JS runs and missing-data cases.
   *Done when:* `pytest` covers both modules offline.
 
 - ~~C3. Python/JS parity test~~ **Dropped**: unnecessary after C1.
@@ -138,8 +141,9 @@ unchanged so it can be verified.
 
 ## E. Housekeeping fixes
 
-- [ ] Add `study/analysis/README.md` (referenced by `report.md` and
-  `label_data.js` but missing), or remove the references.
+- [ ] `report.md` mentions an `analysis/README.md` that never existed; remove
+  the reference or write it (`label_data.js`, which also mentioned it, is
+  gone).
 - [ ] `report.md`: change "33 remaining unrated photos" to 34.
 - [ ] `report.md`: document the 4 ridge passes (two `rater_id` passes were
   added to `label_analysis.js` after the report was written).
@@ -198,7 +202,7 @@ suggestive but not proven. The answer changes the product's output shape:
 
 Nothing is deployed and nothing is specified. Summary:
 
-- **Today:** a local CLI (`npm run score -- <lat> <lon>`). No server, no
+- **Today:** a local CLI (`uv run sunset score <lat> <lon>`). No server, no
   hosting config, no build step, no CI (`.github/` absent, no Dockerfile).
 - **UI:** `design/` holds two Claude-Design mockups ("Sunset Scout": a
   "Tonight" view with a per-spot score). They are static and not wired to any
